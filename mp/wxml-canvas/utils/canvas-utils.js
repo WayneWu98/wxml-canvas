@@ -44,3 +44,24 @@ export const drawBg = function (wxml) {
     return new Promise((resolve, reject) => {
     });
 };
+export const drawColor = function ({ metrics, color, radius }, ctx) {
+    console.log('fill color');
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(metrics.left, metrics.top);
+    ctx.lineTo(metrics.right, metrics.top);
+    ctx.lineTo(metrics.right, metrics.bottom);
+    ctx.lineTo(metrics.left, metrics.bottom);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+};
+export const draw = (els, ctx, canvas) => {
+    els.forEach(el => {
+        switch (el.type) {
+            case "color":
+                drawColor(el, ctx);
+        }
+    });
+};

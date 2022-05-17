@@ -1,4 +1,4 @@
-import { queryWXML, normalizeWxmls } from './utils/index';
+import { queryWXML, normalizeWxmls, parse2els, draw, } from './utils/index';
 const initialOptions = {
     width: 750,
     height: 1334,
@@ -65,10 +65,9 @@ export default class WXMLCanvas {
     draw() {
         queryWXML(this.options.classNames, this.options.instanceContext)
             .then(normalizeWxmls)
-            .then(res => {
-            console.log(res);
-            console.table(res[0]);
-            this.wxml.forEach(wxml => { });
+            .then(res => parse2els(res, this.ctx))
+            .then(els => {
+            draw(els, this.ctx, this.canvas);
         });
     }
     on(eventType, callback) {
