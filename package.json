@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "module": "./dist/index.js",
+  "types": "./types",
   "scripts": {
-    "dev": "npx tsc --watch",
+    "dev": "npx tsc --watch --outDir ../mp/wxml-canvas",
     "build": "npx tsc"
   },
   "keywords": [],

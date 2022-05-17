@@ -1,0 +1,11 @@
+<view class="container">
+  <view class="content">
+    <text class="title" data-text="hello">hello</text>
+  </view>
+  <view class="content">
+    <text class="title" data-text="hello">hello</text>
+  </view>
+  <image class="img" src="https://images.unsplash.com/photo-1638913970675-b5ec36292665" alt="img" mode="aspectFill"/>
+</view>
+
+<canvas class="canvas" id="canvas" canvas-id="canvas" type="2d"></canvas>
