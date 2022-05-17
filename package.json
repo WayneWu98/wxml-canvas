@@ -6,7 +6,7 @@
   "module": "./dist/index.js",
   "types": "./types",
   "scripts": {
-    "dev": "npx tsc --watch --outDir ../mp/wxml-canvas",
+    "dev": "npx tsc --watch --outDir ./mp/wxml-canvas",
     "build": "npx tsc"
   },
   "keywords": [],
