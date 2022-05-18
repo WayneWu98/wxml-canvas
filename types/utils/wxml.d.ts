@@ -16,5 +16,5 @@ export declare type INormalizedWXML = {
 export declare const queryWXML: (classNames?: string[], instanceContext?: InstanceContext) => Promise<IPureWXML[]>;
 export declare const normalizeWxmls: (wxmls: IPureWXML[]) => INormalizedWXML[];
 export declare const computeMetrcs: (wxml: any, refMetrics?: Metrics | undefined) => Metrics;
-export declare const parse2els: (wxmls: INormalizedWXML[], ctx?: WechatMiniprogram.CanvasContext | undefined) => IElement[];
+export declare const parse2els: (wxmls: INormalizedWXML[], ctx: WechatMiniprogram.CanvasContext, canvas: WechatMiniprogram.Canvas) => IElement[];
 export {};

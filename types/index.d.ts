@@ -1,5 +1,5 @@
-/// <reference types="./src/typings" />
 /// <reference types="miniprogram-api-typings" />
+/// <reference types="./src/typings" />
 interface IOptions {
     width?: number;
     height?: number;
@@ -16,11 +16,10 @@ declare enum EventType {
 export default class WXMLCanvas {
     private _canvas?;
     private _ctx?;
-    private wxml;
     private _options;
     private isReady;
-    get canvas(): WechatMiniprogram.Canvas | undefined;
-    get ctx(): WechatMiniprogram.CanvasContext | undefined;
+    get canvas(): WechatMiniprogram.Canvas;
+    get ctx(): WechatMiniprogram.CanvasContext;
     private listeners;
     readonly options: Required<IOptions>;
     constructor(options: IOptions);

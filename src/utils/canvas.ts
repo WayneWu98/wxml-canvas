@@ -1,5 +1,4 @@
-import WXMLCanvas from 'src';
-import { INormalizedWXML } from './wxml';
+import ImgMetrics from './img-metrics';
 
 export const normalizer = {
   size(str: string) {
@@ -30,61 +29,103 @@ export const normalizer = {
   },
 };
 
-export const drawRect = function (
-  this: WXMLCanvas,
+const clipRect = function (
+  ctx: WechatMiniprogram.CanvasContext,
   {
-    position,
+    left,
+    top,
+    right,
+    bottom,
+    width,
+    height,
     radius,
-    backgroundColor,
-    backgroundImage,
-  }: {
-    radius?: BorderRadius;
-    position?: Metrics;
-    backgroundColor?: string;
-    backgroundImage?: string;
-  }
+  }: Metrics & { radius?: number }
 ) {
-  return new Promise((resolve, reject) => {
-    if (!this?.ctx) {
-      return reject(new TypeError('canvas context has not been initialized'));
-    }
-    this.ctx.save();
-    if (backgroundColor) {
-      this.ctx.fillStyle = backgroundColor;
-    }
-  });
+  ctx.beginPath();
+  if (radius) {
+    const newLeft = left + radius;
+    const newRight = right - radius;
+    const newTop = top + radius;
+    const newBottom = bottom - radius;
+
+    ctx.moveTo(newLeft, top);
+    ctx.lineTo(newRight, top);
+    ctx.arc(newRight, newTop, radius, -Math.PI / 2, 0);
+    ctx.lineTo(right, newBottom);
+    ctx.arc(newRight, newBottom, radius, 0, Math.PI / 2);
+    ctx.lineTo(newLeft, bottom);
+    ctx.arc(newLeft, newBottom, radius, Math.PI / 2, Math.PI);
+    ctx.lineTo(left, newTop);
+    ctx.arc(newLeft, newTop, radius, Math.PI, -Math.PI / 2);
+  } else {
+    ctx.rect(left, top, width, height);
+  }
+  ctx.closePath();
+  ctx.clip();
 };
 
-export const drawBorder = function () {};
-
-export const drawText = function () {};
-
-export const drawImage = function () {};
-
-export const drawBg = function (wxml: INormalizedWXML) {
-  return new Promise((resolve, reject) => {
-    // if (wxml.backgroundColor) {
-    // }
-  });
+const clipCircle = function (
+  ctx: WechatMiniprogram.CanvasContext,
+  { x, y, r }: { x: number; y: number; r: number }
+) {
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, 2 * Math.PI);
+  ctx.clip();
 };
+
+const computeImgMetrcsByMode = function (
+  { sw, sh, tw, th }: { sw: number; sh: number; tw: number; th: number },
+  mode: IMAGE_MODE
+) {};
 
 export const drawColor = function (
   { metrics, color, radius }: IElementColor,
   ctx: WechatMiniprogram.CanvasContext
 ) {
-  console.log('fill color');
-
   ctx.save();
-
+  clipRect(ctx, { ...metrics, radius });
   ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.moveTo(metrics.left, metrics.top);
-  ctx.lineTo(metrics.right, metrics.top);
-  ctx.lineTo(metrics.right, metrics.bottom);
-  ctx.lineTo(metrics.left, metrics.bottom);
-  ctx.closePath();
   ctx.fill();
   ctx.restore();
+
+  return Promise.resolve();
+};
+
+export const drawText = function () {};
+
+export const drawImage = function (
+  el: IElementImage,
+  ctx: WechatMiniprogram.CanvasContext,
+  canvas: WechatMiniprogram.Canvas
+) {
+  return new Promise((resolve, reject) => {
+    const img = canvas.createImage();
+    img.onload = () => {
+      ctx.save();
+      const { sx, sy, sw, sh, tx, ty, tw, th } = ImgMetrics[el.mode]({
+        sw: img.width,
+        sh: img.height,
+        tw: el.metrics.width,
+        th: el.metrics.height,
+      });
+      clipRect(ctx, { ...el.metrics, radius: el.radius });
+      ctx.drawImage(
+        img as any,
+        sx,
+        sy,
+        sw,
+        sh,
+        el.metrics.left + tx,
+        el.metrics.top + ty,
+        tw,
+        th
+      );
+      ctx.restore();
+      resolve(true);
+    };
+    img.onerror = reject;
+    img.src = el.src;
+  });
 };
 
 export const draw = (
@@ -92,10 +133,18 @@ export const draw = (
   ctx: WechatMiniprogram.CanvasContext,
   canvas: WechatMiniprogram.Canvas
 ) => {
+  let p: Promise<any> = Promise.resolve();
+
   els.forEach(el => {
-    switch (el.type) {
-      case ELEMENT_TYPE.COLOR:
-        drawColor(el as IElementColor, ctx);
-    }
+    p = p.then(() => {
+      switch (el.type) {
+        case ELEMENT_TYPE.COLOR:
+          return drawColor(el as IElementColor, ctx);
+        case ELEMENT_TYPE.IMAGE:
+          return drawImage(el as IElementImage, ctx, canvas);
+      }
+    });
   });
+
+  return p;
 };

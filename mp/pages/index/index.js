@@ -32,8 +32,6 @@ Page({
   onShow() {
     console.clear()
     const wc = new WC({
-      width: 750,
-      height: 1334,
       backgroundColor: '#fff',
       canvas: '#canvas',
       classNames,

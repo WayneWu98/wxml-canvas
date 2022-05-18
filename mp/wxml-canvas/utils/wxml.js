@@ -1,15 +1,16 @@
-import { parseColor, parseSize } from './style-parser';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.parse2els = exports.computeMetrcs = exports.normalizeWxmls = exports.queryWXML = void 0;
+const style_parser_1 = require("./style-parser");
 const computedStyle = [
     'color',
     'backgroundColor',
     'backgroundImage',
-    'borderWidth',
-    'borderColor',
+    'backgroundSize',
     'borderRadius',
-    'backgroundPosition',
     'font',
 ];
-export const queryWXML = function (classNames = [], instanceContext) {
+const queryWXML = function (classNames = [], instanceContext) {
     return Promise.all(classNames.map(className => {
         return new Promise(resolve => {
             (instanceContext !== null && instanceContext !== void 0 ? instanceContext : wx)
@@ -30,54 +31,85 @@ export const queryWXML = function (classNames = [], instanceContext) {
         .filter(wxmls => wxmls.length)
         .reduce((curr, next) => curr.concat(next), []));
 };
-export const normalizeWxmls = function (wxmls) {
+exports.queryWXML = queryWXML;
+const normalizeWxmls = function (wxmls) {
     const result = [];
     const wrapper = constructWXML(wxmls.shift());
     result.push(wrapper);
     wxmls.forEach(wxml => {
         result.push(constructWXML(wxml, wrapper.metrics));
     });
+    console.log('normalized', result);
     return result;
 };
-export const computeMetrcs = (wxml, refMetrics) => {
+exports.normalizeWxmls = normalizeWxmls;
+const computeMetrcs = (wxml, refMetrics) => {
+    if (!refMetrics) {
+        return {
+            left: 0,
+            right: wxml.right - wxml.left,
+            top: 0,
+            bottom: wxml.bottom - wxml.top,
+            width: wxml.width,
+            height: wxml.height,
+        };
+    }
     return {
-        left: wxml.left - (refMetrics !== null && refMetrics !== void 0 ? refMetrics : wxml).left,
-        top: wxml.top - (refMetrics !== null && refMetrics !== void 0 ? refMetrics : wxml).top,
-        right: wxml.right - (refMetrics !== null && refMetrics !== void 0 ? refMetrics : wxml).right,
-        bottom: wxml.bottom - (refMetrics !== null && refMetrics !== void 0 ? refMetrics : wxml).bottom,
-        width: wxml.right - wxml.left,
-        height: wxml.bottom - wxml.top,
+        left: wxml.left - refMetrics.left,
+        top: wxml.top - refMetrics.top,
+        right: wxml.right - refMetrics.left,
+        bottom: wxml.bottom - refMetrics.top,
+        width: wxml.width,
+        height: wxml.height,
     };
 };
+exports.computeMetrcs = computeMetrcs;
 const constructWXML = (wxml, refMetrics) => {
     var _a;
+    if (wxml.backgroundImage && /^url\(.*\)$/.test(wxml.backgroundImage)) {
+        wxml.src = wxml.backgroundImage.replace(/^url\("?(.*)"?\)$/, '$1');
+        wxml.backgroundImage = '';
+        wxml.mode = (0, style_parser_1.parseBgSize2Mode)(wxml.backgroundSize);
+    }
     const style = {};
     computedStyle.forEach(key => (style[key] = wxml[key]));
-    return Object.assign(Object.assign({}, wxml), { text: (_a = wxml.dataset) === null || _a === void 0 ? void 0 : _a.text, src: wxml.src, mode: wxml.mode, metrics: computeMetrcs(wxml, refMetrics), style });
+    return Object.assign(Object.assign({}, wxml), { text: (_a = wxml.dataset) === null || _a === void 0 ? void 0 : _a.text, src: wxml.src, mode: wxml.mode, metrics: (0, exports.computeMetrcs)(wxml, refMetrics), style: style });
 };
-export const parse2els = function (wxmls, ctx) {
+const parse2els = function (wxmls, ctx, canvas) {
     const els = [];
     wxmls.forEach(wxml => {
-        if (wxml.style.backgroundColor) {
+        if (wxml.style.backgroundColor &&
+            wxml.style.backgroundColor !== 'rgba(0, 0, 0, 0)') {
             els.push(createColorEl(wxml, wxml.style.backgroundColor, ctx));
         }
-        if (wxml.style.backgroundImage) {
+        if (wxml.style.backgroundImage && wxml.style.backgroundImage !== 'none') {
             if (wxml.style.backgroundImage.startsWith('linear-gradient')) {
                 els.push(createColorEl(wxml, wxml.style.backgroundImage, ctx));
             }
         }
+        if (wxml.src) {
+            els.push(createImageEl(wxml));
+        }
     });
-    console.log(els);
-    return els.slice(1, 2);
+    console.log('els', els);
+    return els;
 };
+exports.parse2els = parse2els;
 const createColorEl = function (wxml, color = wxml.style.backgroundColor, ctx) {
     const metrics = wxml.metrics;
     return {
         type: "color",
-        color: parseColor(color, ctx, wxml.metrics),
-        radius: parseSize(wxml.style.borderRadius),
+        color: (0, style_parser_1.parseColor)(color, ctx, wxml.metrics),
+        radius: (0, style_parser_1.parseSize)(wxml.style.borderRadius),
         metrics,
     };
 };
-const createImageEl = function (wxml) { };
-const createBorderEl = function (wxml) { };
+const createImageEl = function (wxml) {
+    return {
+        metrics: wxml.metrics,
+        type: "image",
+        src: wxml.src,
+        radius: (0, style_parser_1.parseSize)(wxml.style.borderRadius),
+        mode: wxml.mode,
+    };
+};

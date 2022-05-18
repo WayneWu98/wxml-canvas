@@ -14,7 +14,7 @@ type Metrics = {
   bottom: number;
 };
 
-enum IMAGE_MODE {
+const enum IMAGE_MODE {
   SCALE_TO_FILL = 'scaleToFill',
   ASPECT_FILL = 'aspectFill',
   ASPECT_FIT = 'aspectFit',
@@ -44,15 +44,15 @@ interface IElement {
 }
 
 interface Style {
-  backgroundColor?: string;
-  color?: string;
-  borderWidth?: string;
-  borderColor?: string;
-  borderRadius?: string;
-  backgroundPosition?: string;
-  backgroundSize?: 'cover' | 'contain';
-  backgroundImage?: string;
-  font?: string;
+  backgroundColor: string;
+  color: string;
+  borderRadius: string;
+  backgroundPosition: string;
+  backgroundSize: string;
+  backgroundImage: string;
+  font: string;
+  textAlign: string;
+  lineHeight: string;
 }
 
 type StyleName = keyof Style;
@@ -66,7 +66,7 @@ interface IElementColor extends IElement {
 interface IElementImage extends IElement {
   type: ELEMENT_TYPE.IMAGE;
   src: string;
-  radius: BorderRadius;
+  radius: number;
   mode: IMAGE_MODE;
 }
 
@@ -78,11 +78,4 @@ interface IElementText extends IElement {
   endian?: string;
   lineHeight: number;
   color: string;
-}
-
-interface IElementBorder extends IElement {
-  type: ELEMENT_TYPE.BORDER;
-  color: string;
-  width: number;
-  radius: BorderRadius;
 }

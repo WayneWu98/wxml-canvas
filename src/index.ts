@@ -1,10 +1,4 @@
-import {
-  INormalizedWXML,
-  queryWXML,
-  normalizeWxmls,
-  parse2els,
-  draw,
-} from './utils/index';
+import { queryWXML, normalizeWxmls, parse2els, draw } from './utils/index';
 
 interface IOptions {
   width?: number;
@@ -42,16 +36,15 @@ interface IListeners {
 export default class WXMLCanvas {
   private _canvas?: WechatMiniprogram.Canvas;
   private _ctx?: WechatMiniprogram.CanvasContext;
-  private wxml: INormalizedWXML[] = [];
   private _options: IOptions;
   private isReady = false;
 
   get canvas() {
-    return this._canvas;
+    return this._canvas as WechatMiniprogram.Canvas;
   }
 
   get ctx() {
-    return this._ctx;
+    return this._ctx as WechatMiniprogram.CanvasContext;
   }
   private listeners: IListeners = {
     [EventType.READY]: new Set(),
@@ -92,8 +85,8 @@ export default class WXMLCanvas {
 
           this._canvas = res?.[0].node as WechatMiniprogram.Canvas;
           this._ctx = this._canvas.getContext('2d');
-          this._canvas.width = this.options.width;
-          this._canvas.height = this.options.height;
+          // this._canvas.width = this.options.width;
+          // this._canvas.height = this.options.height;
 
           resolve(true);
         });
@@ -103,7 +96,11 @@ export default class WXMLCanvas {
   draw() {
     queryWXML(this.options.classNames, this.options.instanceContext)
       .then(normalizeWxmls)
-      .then(res => parse2els(res, this.ctx))
+      .then(res => {
+        this._canvas!.width = res[0].metrics.width;
+        this._canvas!.height = res[0].metrics.height;
+        return parse2els(res, this.ctx, this.canvas);
+      })
       .then(els => {
         draw(
           els,

@@ -10,9 +10,9 @@ export const parseColor = function (
       .split(/\,\s(?=[(rgb)(#)])/)
       .map(s => s.trim());
     let x0 = 0;
-    let y0 = metrics.height;
+    let y0 = 0;
     let x1 = 0;
-    let y1 = 0;
+    let y1 = metrics.height;
     let refSize = metrics.height;
     if (splitted[0].endsWith('deg')) {
       const angle = splitted.shift();
@@ -21,9 +21,10 @@ export const parseColor = function (
           x0 = y0 = y1 = 0;
           refSize = x1 = metrics.width;
           break;
-        case '180deg':
-          x0 = x1 = y0 = 0;
-          y1 = metrics.height;
+        case '0deg':
+          x0 = x1 = y1 = 0;
+          refSize = y0 = metrics.height;
+          break;
         case '270deg':
           x1 = y0 = y1 = 0;
           refSize = x0 = metrics.width;
@@ -54,4 +55,15 @@ export const parseSize = function (size: string, refSize?: number) {
     return (parseFloat(size) / 100) * (refSize ?? 1);
   }
   return parseFloat(size);
+};
+
+export const parseBgSize2Mode = function (bgPosition: string) {
+  switch (bgPosition) {
+    case 'cover':
+      return IMAGE_MODE.ASPECT_FILL;
+    case 'contain':
+      return IMAGE_MODE.ASPECT_FIT;
+    default:
+      return IMAGE_MODE.TOP_LEFT;
+  }
 };
