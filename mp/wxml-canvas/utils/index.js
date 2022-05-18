@@ -1,2 +1,2 @@
-export * from './wxml-utils';
-export * from './canvas-utils';
+export * from './wxml';
+export * from './canvas';

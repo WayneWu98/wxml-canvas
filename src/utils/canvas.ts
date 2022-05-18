@@ -1,5 +1,5 @@
 import WXMLCanvas from 'src';
-import { INormalizedWXML } from './wxml-utils';
+import { INormalizedWXML } from './wxml';
 
 export const normalizer = {
   size(str: string) {

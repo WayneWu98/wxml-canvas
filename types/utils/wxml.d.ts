@@ -1,5 +1,4 @@
 /// <reference types="./src/typings" />
-/// <reference types="miniprogram-api-typings" />
 declare const computedStyle: StyleName[];
 export declare type IPureWXML = Metrics & {
     [key in keyof typeof computedStyle]?: string;

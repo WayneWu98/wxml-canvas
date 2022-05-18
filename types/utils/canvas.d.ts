@@ -1,4 +1,5 @@
 import WXMLCanvas from 'src';
+import { INormalizedWXML } from './wxml';
 export declare const normalizer: {
     size(str: string): string;
     isUrl(str: string): boolean;
