@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.draw = exports.drawImage = exports.drawText = exports.drawColor = exports.normalizer = void 0;
+exports.draw = exports.normalizer = void 0;
 const img_metrics_1 = __importDefault(require("./img-metrics"));
 exports.normalizer = {
     size(str) {
@@ -62,22 +62,49 @@ const clipCircle = function (ctx, { x, y, r }) {
     ctx.clip();
 };
 const computeImgMetrcsByMode = function ({ sw, sh, tw, th }, mode) { };
-const drawColor = function ({ metrics, color, radius }, ctx) {
+const drawLine = function (ctx, [x0, y0, x1, y1], { lineWidth, color, opacity, }) {
+    if (!lineWidth) {
+        return;
+    }
     ctx.save();
+    ctx.globalAlpha = opacity;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x1, y1);
+    ctx.stroke();
+    ctx.restore();
+};
+const drawArc = function (ctx, { x, y, radius, startAngle, endAngle, lineWidth, opacity, color, }) {
+    if (!lineWidth) {
+        return;
+    }
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, startAngle, endAngle);
+    ctx.stroke();
+    ctx.restore();
+};
+const drawColor = function ({ metrics, color, radius, opacity }, ctx) {
+    ctx.save();
+    ctx.globalAlpha = opacity;
     clipRect(ctx, Object.assign(Object.assign({}, metrics), { radius }));
     ctx.fillStyle = color;
     ctx.fill();
     ctx.restore();
     return Promise.resolve();
 };
-exports.drawColor = drawColor;
 const drawText = function () { };
-exports.drawText = drawText;
 const drawImage = function (el, ctx, canvas) {
     return new Promise((resolve, reject) => {
         const img = canvas.createImage();
         img.onload = () => {
             ctx.save();
+            ctx.globalAlpha = el.opacity;
             const { sx, sy, sw, sh, tx, ty, tw, th } = img_metrics_1.default[el.mode]({
                 sw: img.width,
                 sh: img.height,
@@ -87,22 +114,112 @@ const drawImage = function (el, ctx, canvas) {
             clipRect(ctx, Object.assign(Object.assign({}, el.metrics), { radius: el.radius }));
             ctx.drawImage(img, sx, sy, sw, sh, el.metrics.left + tx, el.metrics.top + ty, tw, th);
             ctx.restore();
-            resolve(true);
+            resolve();
         };
         img.onerror = reject;
         img.src = el.src;
     });
 };
-exports.drawImage = drawImage;
+const drawBorder = function ({ width, metrics, outerMetrics, radius, color }, ctx) {
+    ctx.save();
+    clipRect(ctx, Object.assign(Object.assign({}, metrics), { radius }));
+    if (width.every(v => v === width[0]) && radius === 0) {
+        ctx.rect(metrics.left, metrics.top, metrics.width, metrics.height);
+        ctx.stroke();
+    }
+    else {
+        const newLeft = metrics.left + radius;
+        const newRight = metrics.right - radius;
+        const newTop = metrics.top + radius;
+        const newBottom = metrics.bottom - radius;
+        clipRect(ctx, Object.assign(Object.assign({}, outerMetrics), { radius }));
+        drawLine(ctx, [newLeft, metrics.top, newRight, metrics.top], {
+            lineWidth: width[0],
+            color: color[0],
+            opacity: 1,
+        });
+        drawLine(ctx, [metrics.right, newTop, metrics.right, newBottom], {
+            lineWidth: width[1],
+            color: color[1],
+            opacity: 1,
+        });
+        drawLine(ctx, [newLeft, metrics.bottom, newRight, metrics.bottom], {
+            lineWidth: width[2],
+            color: color[2],
+            opacity: 1,
+        });
+        drawLine(ctx, [metrics.left, newTop, metrics.left, newBottom], {
+            lineWidth: width[3],
+            color: color[3],
+            opacity: 1,
+        });
+        if (width[0]) {
+            if (width[1]) {
+                drawArc(ctx, {
+                    x: newRight,
+                    y: newTop,
+                    radius,
+                    startAngle: -Math.PI / 2,
+                    endAngle: 0,
+                    lineWidth: width[1],
+                    opacity: 1,
+                    color: color[1],
+                });
+            }
+            if (width[3]) {
+                drawArc(ctx, {
+                    x: newLeft,
+                    y: newTop,
+                    radius,
+                    startAngle: Math.PI,
+                    endAngle: (Math.PI * 3) / 2,
+                    lineWidth: width[0],
+                    opacity: 1,
+                    color: color[0],
+                });
+            }
+        }
+        if (width[2]) {
+            if (width[1]) {
+                drawArc(ctx, {
+                    x: newRight,
+                    y: newBottom,
+                    radius,
+                    startAngle: 0,
+                    endAngle: Math.PI / 2,
+                    lineWidth: width[2],
+                    opacity: 1,
+                    color: color[2],
+                });
+            }
+            if (width[3]) {
+                drawArc(ctx, {
+                    x: newLeft,
+                    y: newBottom,
+                    radius,
+                    startAngle: Math.PI / 2,
+                    endAngle: Math.PI,
+                    lineWidth: width[3],
+                    opacity: 1,
+                    color: color[3],
+                });
+            }
+        }
+    }
+    ctx.restore();
+    return Promise.resolve();
+};
 const draw = (els, ctx, canvas) => {
     let p = Promise.resolve();
     els.forEach(el => {
         p = p.then(() => {
             switch (el.type) {
                 case "color":
-                    return (0, exports.drawColor)(el, ctx);
+                    return drawColor(el, ctx);
                 case "image":
-                    return (0, exports.drawImage)(el, ctx, canvas);
+                    return drawImage(el, ctx, canvas);
+                case "border":
+                    return drawBorder(el, ctx);
             }
         });
     });

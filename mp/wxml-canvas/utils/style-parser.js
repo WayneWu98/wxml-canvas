@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.parseBgSize2Mode = exports.parseSize = exports.parseColor = void 0;
+exports.parseBorderColor = exports.parseBorderWidth = exports.parseBgSize2Mode = exports.parseSize = exports.parseColor = void 0;
 const parseColor = function (rawColor, ctx, metrics) {
     if (rawColor.startsWith('linear-gradient') && metrics && ctx) {
         const splitted = rawColor
@@ -60,3 +60,39 @@ const parseBgSize2Mode = function (bgPosition) {
     }
 };
 exports.parseBgSize2Mode = parseBgSize2Mode;
+const parseBorderWidth = function (borderWidth) {
+    const ws = borderWidth.split(' ').map(exports.parseSize);
+    let width;
+    if (ws.length === 1) {
+        width = [ws[0], ws[0], ws[0], ws[0]];
+    }
+    else if (ws.length === 2) {
+        width = [ws[0], ws[1], ws[0], ws[1]];
+    }
+    else if (ws.length === 3) {
+        width = [ws[0], ws[1], ws[2], ws[0]];
+    }
+    else {
+        width = [ws[0], ws[1], ws[2], ws[3]];
+    }
+    return width;
+};
+exports.parseBorderWidth = parseBorderWidth;
+const parseBorderColor = function (borderColor) {
+    const colors = borderColor.split(/\s(?=[(rgb)(#)])/);
+    let color;
+    if (colors.length === 1) {
+        color = [colors[0], colors[0], colors[0], colors[0]];
+    }
+    else if (colors.length === 2) {
+        color = [colors[0], colors[1], colors[0], colors[1]];
+    }
+    else if (colors.length === 3) {
+        color = [colors[0], colors[1], colors[2], colors[0]];
+    }
+    else {
+        color = [colors[0], colors[1], colors[2], colors[3]];
+    }
+    return color;
+};
+exports.parseBorderColor = parseBorderColor;

@@ -7,8 +7,11 @@ const computedStyle = [
     'backgroundColor',
     'backgroundImage',
     'backgroundSize',
+    'borderWidth',
+    'borderColor',
     'borderRadius',
     'font',
+    'opacity',
 ];
 const queryWXML = function (classNames = [], instanceContext) {
     return Promise.all(classNames.map(className => {
@@ -90,6 +93,9 @@ const parse2els = function (wxmls, ctx, canvas) {
         if (wxml.src) {
             els.push(createImageEl(wxml));
         }
+        if (wxml.style.borderWidth && wxml.style.borderWidth !== '0px') {
+            els.push(createBorderEl(wxml));
+        }
     });
     console.log('els', els);
     return els;
@@ -102,14 +108,29 @@ const createColorEl = function (wxml, color = wxml.style.backgroundColor, ctx) {
         color: (0, style_parser_1.parseColor)(color, ctx, wxml.metrics),
         radius: (0, style_parser_1.parseSize)(wxml.style.borderRadius),
         metrics,
+        opacity: parseFloat(wxml.style.opacity),
     };
 };
 const createImageEl = function (wxml) {
     return {
-        metrics: wxml.metrics,
         type: "image",
+        metrics: wxml.metrics,
         src: wxml.src,
         radius: (0, style_parser_1.parseSize)(wxml.style.borderRadius),
         mode: wxml.mode,
+        opacity: parseFloat(wxml.style.opacity),
+    };
+};
+const createBorderEl = function (wxml) {
+    const width = (0, style_parser_1.parseBorderWidth)(wxml.style.borderWidth);
+    const metrics = Object.assign(Object.assign({}, wxml.metrics), { left: wxml.metrics.left + Math.ceil(width[3] / 2), top: wxml.metrics.top + Math.ceil(width[0] / 2), right: wxml.metrics.right - Math.ceil(width[1] / 2), bottom: wxml.metrics.bottom - Math.ceil(width[2] / 2) });
+    return {
+        type: "border",
+        metrics,
+        outerMetrics: wxml.metrics,
+        color: (0, style_parser_1.parseBorderColor)(wxml.style.borderColor),
+        width,
+        radius: (0, style_parser_1.parseSize)(wxml.style.borderRadius),
+        opacity: parseFloat(wxml.style.opacity),
     };
 };
