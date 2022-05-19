@@ -213,6 +213,9 @@ const draw = (els, ctx, canvas) => {
     let p = Promise.resolve();
     els.forEach(el => {
         p = p.then(() => {
+            if (el.metrics.width === 0 || el.metrics.height === 0) {
+                return Promise.resolve();
+            }
             switch (el.type) {
                 case "color":
                     return drawColor(el, ctx);

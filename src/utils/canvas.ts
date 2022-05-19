@@ -301,6 +301,10 @@ export const draw = (
 
   els.forEach(el => {
     p = p.then(() => {
+      if (el.metrics.width === 0 || el.metrics.height === 0) {
+        // 元素没有尺寸就没必要绘制了，可能会存在特殊情况
+        return Promise.resolve();
+      }
       switch (el.type) {
         case ELEMENT_TYPE.COLOR:
           return drawColor(el as IColorElement, ctx);
