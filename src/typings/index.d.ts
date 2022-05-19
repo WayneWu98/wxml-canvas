@@ -38,6 +38,7 @@ const enum ELEMENT_TYPE {
 interface IElement {
   type: ELEMENT_TYPE;
   metrics: Metrics;
+  opacity: number;
 }
 
 interface Style {
@@ -50,6 +51,9 @@ interface Style {
   font: string;
   textAlign: string;
   lineHeight: string;
+  opacity: string;
+  borderWidth: string;
+  borderColor: string;
 }
 
 type StyleName = keyof Style;
@@ -75,4 +79,12 @@ interface ITextElement extends IElement {
   endian?: string;
   lineHeight: number;
   color: string;
+}
+
+interface IBorderElement extends IElement {
+  type: ELEMENT_TYPE.BORDER;
+  outerMetrics: Metrics;
+  color: [string, string, string, string];
+  width: [number, number, number, number];
+  radius: number;
 }

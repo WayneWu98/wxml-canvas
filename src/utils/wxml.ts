@@ -1,12 +1,21 @@
-import { parseColor, parseSize, parseBgSize2Mode } from './style-parser';
+import {
+  parseColor,
+  parseSize,
+  parseBgSize2Mode,
+  parseBorderWidth,
+  parseBorderColor,
+} from './style-parser';
 
 const computedStyle: StyleName[] = [
   'color',
   'backgroundColor',
   'backgroundImage',
   'backgroundSize',
+  'borderWidth',
+  'borderColor',
   'borderRadius',
   'font',
+  'opacity',
 ];
 
 export type IPureWXML = Metrics & {
@@ -128,6 +137,9 @@ export const parse2els = function (
     if (wxml.src) {
       els.push(createImageEl(wxml));
     }
+    if (wxml.style.borderWidth && wxml.style.borderWidth !== '0px') {
+      els.push(createBorderEl(wxml));
+    }
   });
   console.log('els', els);
 
@@ -146,15 +158,37 @@ const createColorEl = function (
     color: parseColor(color, ctx, wxml.metrics),
     radius: parseSize(wxml.style.borderRadius!),
     metrics,
+    opacity: parseFloat(wxml.style.opacity!),
   };
 };
 
 const createImageEl = function (wxml: INormalizedWXML): IImageElement {
   return {
-    metrics: wxml.metrics,
     type: ELEMENT_TYPE.IMAGE,
+    metrics: wxml.metrics,
     src: wxml.src!,
     radius: parseSize(wxml.style.borderRadius!),
     mode: wxml.mode!,
+    opacity: parseFloat(wxml.style.opacity!),
+  };
+};
+
+const createBorderEl = function (wxml: INormalizedWXML): IBorderElement {
+  const width = parseBorderWidth(wxml.style.borderWidth!);
+  const metrics = {
+    ...wxml.metrics,
+    left: wxml.metrics.left + Math.ceil(width[3] / 2),
+    top: wxml.metrics.top + Math.ceil(width[0] / 2),
+    right: wxml.metrics.right - Math.ceil(width[1] / 2),
+    bottom: wxml.metrics.bottom - Math.ceil(width[2] / 2),
+  };
+  return {
+    type: ELEMENT_TYPE.BORDER,
+    metrics,
+    outerMetrics: wxml.metrics,
+    color: parseBorderColor(wxml.style.borderColor!),
+    width,
+    radius: parseSize(wxml.style.borderRadius!),
+    opacity: parseFloat(wxml.style.opacity!),
   };
 };

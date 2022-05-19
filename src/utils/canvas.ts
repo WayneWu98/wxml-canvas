@@ -78,11 +78,71 @@ const computeImgMetrcsByMode = function (
   mode: IMAGE_MODE
 ) {};
 
-export const drawColor = function (
-  { metrics, color, radius }: IColorElement,
-  ctx: WechatMiniprogram.CanvasContext
+const drawLine = function (
+  ctx: WechatMiniprogram.CanvasContext,
+  [x0, y0, x1, y1]: [number, number, number, number],
+  {
+    lineWidth,
+    color,
+    opacity,
+  }: { lineWidth: number; color: string; opacity: number }
 ) {
+  if (!lineWidth) {
+    return;
+  }
   ctx.save();
+  ctx.globalAlpha = opacity;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.beginPath();
+  ctx.moveTo(x0, y0);
+  ctx.lineTo(x1, y1);
+  ctx.stroke();
+  ctx.restore();
+};
+
+const drawArc = function (
+  ctx: WechatMiniprogram.CanvasContext,
+  {
+    x,
+    y,
+    radius,
+    startAngle,
+    endAngle,
+    lineWidth,
+    opacity,
+    color,
+  }: {
+    x: number;
+    y: number;
+    radius: number;
+    startAngle: number;
+    endAngle: number;
+    lineWidth: number;
+    opacity: number;
+    color: string;
+  }
+) {
+  if (!lineWidth) {
+    return;
+  }
+
+  ctx.save();
+  ctx.globalAlpha = opacity;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.beginPath();
+  ctx.arc(x, y, radius, startAngle, endAngle);
+  ctx.stroke();
+  ctx.restore();
+};
+
+const drawColor = function (
+  { metrics, color, radius, opacity }: IColorElement,
+  ctx: WechatMiniprogram.CanvasContext
+): Promise<void> {
+  ctx.save();
+  ctx.globalAlpha = opacity;
   clipRect(ctx, { ...metrics, radius });
   ctx.fillStyle = color;
   ctx.fill();
@@ -91,17 +151,18 @@ export const drawColor = function (
   return Promise.resolve();
 };
 
-export const drawText = function () {};
+const drawText = function () {};
 
-export const drawImage = function (
+const drawImage = function (
   el: IImageElement,
   ctx: WechatMiniprogram.CanvasContext,
   canvas: WechatMiniprogram.Canvas
-) {
+): Promise<void> {
   return new Promise((resolve, reject) => {
     const img = canvas.createImage();
     img.onload = () => {
       ctx.save();
+      ctx.globalAlpha = el.opacity;
       const { sx, sy, sw, sh, tx, ty, tw, th } = ImgMetrics[el.mode]({
         sw: img.width,
         sh: img.height,
@@ -121,11 +182,114 @@ export const drawImage = function (
         th
       );
       ctx.restore();
-      resolve(true);
+      resolve();
     };
     img.onerror = reject;
     img.src = el.src;
   });
+};
+
+const drawBorder = function (
+  { width, metrics, outerMetrics, radius, color }: IBorderElement,
+  ctx: WechatMiniprogram.CanvasContext
+): Promise<void> {
+  ctx.save();
+  clipRect(ctx, { ...metrics, radius });
+  if (width.every(v => v === width[0]) && radius === 0) {
+    ctx.rect(metrics.left, metrics.top, metrics.width, metrics.height);
+    ctx.stroke();
+  } else {
+    const newLeft = metrics.left + radius;
+    const newRight = metrics.right - radius;
+    const newTop = metrics.top + radius;
+    const newBottom = metrics.bottom - radius;
+
+    clipRect(ctx, { ...outerMetrics, radius });
+
+    drawLine(ctx, [newLeft, metrics.top, newRight, metrics.top], {
+      lineWidth: width[0],
+      color: color[0],
+      opacity: 1,
+    });
+    drawLine(ctx, [metrics.right, newTop, metrics.right, newBottom], {
+      lineWidth: width[1],
+      color: color[1],
+      opacity: 1,
+    });
+    drawLine(ctx, [newLeft, metrics.bottom, newRight, metrics.bottom], {
+      lineWidth: width[2],
+      color: color[2],
+      opacity: 1,
+    });
+    drawLine(ctx, [metrics.left, newTop, metrics.left, newBottom], {
+      lineWidth: width[3],
+      color: color[3],
+      opacity: 1,
+    });
+
+    if (width[0]) {
+      if (width[1]) {
+        // 如果存在上、右边框
+        drawArc(ctx, {
+          x: newRight,
+          y: newTop,
+          radius,
+          startAngle: -Math.PI / 2,
+          endAngle: 0,
+          lineWidth: width[1],
+          opacity: 1,
+          color: color[1],
+        });
+      }
+
+      if (width[3]) {
+        // 如果存在上、左边框
+        drawArc(ctx, {
+          x: newLeft,
+          y: newTop,
+          radius,
+          startAngle: Math.PI,
+          endAngle: (Math.PI * 3) / 2,
+          lineWidth: width[0],
+          opacity: 1,
+          color: color[0],
+        });
+      }
+    }
+
+    if (width[2]) {
+      if (width[1]) {
+        // 如果存在下、右边框
+        drawArc(ctx, {
+          x: newRight,
+          y: newBottom,
+          radius,
+          startAngle: 0,
+          endAngle: Math.PI / 2,
+          lineWidth: width[2],
+          opacity: 1,
+          color: color[2],
+        });
+      }
+
+      if (width[3]) {
+        // 如果存在下、左边框
+        drawArc(ctx, {
+          x: newLeft,
+          y: newBottom,
+          radius,
+          startAngle: Math.PI / 2,
+          endAngle: Math.PI,
+          lineWidth: width[3],
+          opacity: 1,
+          color: color[3],
+        });
+      }
+    }
+  }
+
+  ctx.restore();
+  return Promise.resolve();
 };
 
 export const draw = (
@@ -142,6 +306,8 @@ export const draw = (
           return drawColor(el as IColorElement, ctx);
         case ELEMENT_TYPE.IMAGE:
           return drawImage(el as IImageElement, ctx, canvas);
+        case ELEMENT_TYPE.BORDER:
+          return drawBorder(el as IBorderElement, ctx);
       }
     });
   });

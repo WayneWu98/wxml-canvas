@@ -67,3 +67,33 @@ export const parseBgSize2Mode = function (bgPosition: string) {
       return IMAGE_MODE.TOP_LEFT;
   }
 };
+
+export const parseBorderWidth = function (borderWidth: string) {
+  const ws = borderWidth.split(' ').map(parseSize);
+  let width;
+  if (ws.length === 1) {
+    width = [ws[0], ws[0], ws[0], ws[0]];
+  } else if (ws.length === 2) {
+    width = [ws[0], ws[1], ws[0], ws[1]];
+  } else if (ws.length === 3) {
+    width = [ws[0], ws[1], ws[2], ws[0]];
+  } else {
+    width = [ws[0], ws[1], ws[2], ws[3]];
+  }
+  return width as [number, number, number, number];
+};
+
+export const parseBorderColor = function (borderColor: string) {
+  const colors = borderColor.split(/\s(?=[(rgb)(#)])/);
+  let color;
+  if (colors.length === 1) {
+    color = [colors[0], colors[0], colors[0], colors[0]];
+  } else if (colors.length === 2) {
+    color = [colors[0], colors[1], colors[0], colors[1]];
+  } else if (colors.length === 3) {
+    color = [colors[0], colors[1], colors[2], colors[0]];
+  } else {
+    color = [colors[0], colors[1], colors[2], colors[3]];
+  }
+  return color as [string, string, string, string];
+};
