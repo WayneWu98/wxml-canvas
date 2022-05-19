@@ -27,6 +27,7 @@ export type IPureWXML = Metrics & {
 
 export type INormalizedWXML = {
   metrics: Metrics;
+  rawMetrics: Metrics;
   style: Style;
   src?: string;
   mode?: IMAGE_MODE;
@@ -68,7 +69,7 @@ export const normalizeWxmls = function (wxmls: IPureWXML[]) {
 
   result.push(wrapper);
   wxmls.forEach(wxml => {
-    result.push(constructWXML(wxml, wrapper.metrics));
+    result.push(constructWXML(wxml, wrapper.rawMetrics));
   });
 
   console.log('normalized', result);
@@ -112,6 +113,14 @@ const constructWXML = (wxml: any, refMetrics?: Metrics): INormalizedWXML => {
     src: wxml.src,
     mode: wxml.mode,
     metrics: computeMetrcs(wxml, refMetrics),
+    rawMetrics: {
+      left: wxml.left,
+      right: wxml.right,
+      top: wxml.top,
+      bottom: wxml.bottom,
+      width: wxml.width,
+      height: wxml.height,
+    },
     style: style as Style,
   };
 };

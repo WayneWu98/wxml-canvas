@@ -1,9 +1,10 @@
+
 <view class="container">
   <view class="content">
     <view class="title" data-text="hello">hello</view>
+    <!-- <view class="title" data-text="hello">hello</view>
     <view class="title" data-text="hello">hello</view>
-    <view class="title" data-text="hello">hello</view>
-    <view class="title" data-text="hello">hello</view>
+    <view class="title" data-text="hello">hello</view> -->
   </view>
   <image class="img" mode="center" src="https://images.unsplash.com/photo-1638913970675-b5ec36292665" alt="img" />
 </view>

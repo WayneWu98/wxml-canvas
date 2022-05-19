@@ -2,11 +2,10 @@ page {
   padding-top: 50rpx;
   padding-bottom: 100rpx;
 }
-
 .container {
   /* background-color: #fff; */
   color: rgba(0, 0, 0, 0.5);
-  border-radius: 300rpx;
+  /* border-radius: 300rpx; */
   font-weight: 800;
   /* background-color: red; */
   background-image: url(https://images.unsplash.com/photo-1652547507341-74aaa91ae783?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxlZGl0b3JpYWwtZmVlZHwxNHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=60);
@@ -24,7 +23,8 @@ page {
 
 .title {
   margin-top: 8rpx;
-  padding: 8rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 10rpx;
   background-color: rgba(255, 255, 255, 0.5);
 }
 

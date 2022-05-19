@@ -40,7 +40,7 @@ const normalizeWxmls = function (wxmls) {
     const wrapper = constructWXML(wxmls.shift());
     result.push(wrapper);
     wxmls.forEach(wxml => {
-        result.push(constructWXML(wxml, wrapper.metrics));
+        result.push(constructWXML(wxml, wrapper.rawMetrics));
     });
     console.log('normalized', result);
     return result;
@@ -76,7 +76,14 @@ const constructWXML = (wxml, refMetrics) => {
     }
     const style = {};
     computedStyle.forEach(key => (style[key] = wxml[key]));
-    return Object.assign(Object.assign({}, wxml), { text: (_a = wxml.dataset) === null || _a === void 0 ? void 0 : _a.text, src: wxml.src, mode: wxml.mode, metrics: (0, exports.computeMetrcs)(wxml, refMetrics), style: style });
+    return Object.assign(Object.assign({}, wxml), { text: (_a = wxml.dataset) === null || _a === void 0 ? void 0 : _a.text, src: wxml.src, mode: wxml.mode, metrics: (0, exports.computeMetrcs)(wxml, refMetrics), rawMetrics: {
+            left: wxml.left,
+            right: wxml.right,
+            top: wxml.top,
+            bottom: wxml.bottom,
+            width: wxml.width,
+            height: wxml.height,
+        }, style: style });
 };
 const parse2els = function (wxmls, ctx, canvas) {
     const els = [];
