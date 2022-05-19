@@ -2,9 +2,6 @@ type InstanceContext =
   | WechatMiniprogram.Page.Instance<any, any>
   | WechatMiniprogram.Component.Instance<any, any, any>;
 
-type BorderRadius = [number, number, number, number];
-type Color = string;
-type Size = number;
 type Metrics = {
   width: number;
   height: number;
@@ -57,20 +54,20 @@ interface Style {
 
 type StyleName = keyof Style;
 
-interface IElementColor extends IElement {
+interface IColorElement extends IElement {
   type: ELEMENT_TYPE.COLOR;
   color: string | WechatMiniprogram.CanvasGradient;
   radius: number;
 }
 
-interface IElementImage extends IElement {
+interface IImageElement extends IElement {
   type: ELEMENT_TYPE.IMAGE;
   src: string;
   radius: number;
   mode: IMAGE_MODE;
 }
 
-interface IElementText extends IElement {
+interface ITextElement extends IElement {
   type: ELEMENT_TYPE.TEXT;
   font: string;
   text: string;

@@ -79,7 +79,7 @@ const computeImgMetrcsByMode = function (
 ) {};
 
 export const drawColor = function (
-  { metrics, color, radius }: IElementColor,
+  { metrics, color, radius }: IColorElement,
   ctx: WechatMiniprogram.CanvasContext
 ) {
   ctx.save();
@@ -94,7 +94,7 @@ export const drawColor = function (
 export const drawText = function () {};
 
 export const drawImage = function (
-  el: IElementImage,
+  el: IImageElement,
   ctx: WechatMiniprogram.CanvasContext,
   canvas: WechatMiniprogram.Canvas
 ) {
@@ -139,9 +139,9 @@ export const draw = (
     p = p.then(() => {
       switch (el.type) {
         case ELEMENT_TYPE.COLOR:
-          return drawColor(el as IElementColor, ctx);
+          return drawColor(el as IColorElement, ctx);
         case ELEMENT_TYPE.IMAGE:
-          return drawImage(el as IElementImage, ctx, canvas);
+          return drawImage(el as IImageElement, ctx, canvas);
       }
     });
   });

@@ -138,7 +138,7 @@ const createColorEl = function (
   wxml: INormalizedWXML,
   color: string = wxml.style.backgroundColor!,
   ctx?: WechatMiniprogram.CanvasContext
-): IElementColor {
+): IColorElement {
   const metrics = wxml.metrics;
 
   return {
@@ -149,7 +149,7 @@ const createColorEl = function (
   };
 };
 
-const createImageEl = function (wxml: INormalizedWXML): IElementImage {
+const createImageEl = function (wxml: INormalizedWXML): IImageElement {
   return {
     metrics: wxml.metrics,
     type: ELEMENT_TYPE.IMAGE,
