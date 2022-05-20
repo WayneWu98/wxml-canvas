@@ -178,10 +178,10 @@ const createBorderEl = function (wxml: INormalizedWXML): IBorderElement {
   const width = parseBorderWidth(wxml.style.borderWidth!);
   const metrics = {
     ...wxml.metrics,
-    left: wxml.metrics.left + Math.ceil(width[3] / 2) - 1,
-    top: wxml.metrics.top + Math.ceil(width[0] / 2) - 1,
-    right: wxml.metrics.right - Math.ceil(width[1] / 2) + 1,
-    bottom: wxml.metrics.bottom - Math.ceil(width[2] / 2) + 1,
+    left: wxml.metrics.left + Math.floor(width[3] / 2),
+    top: wxml.metrics.top + Math.floor(width[0] / 2),
+    right: wxml.metrics.right - Math.floor(width[1] / 2),
+    bottom: wxml.metrics.bottom - Math.floor(width[2] / 2),
   };
   return {
     type: ELEMENT_TYPE.BORDER,

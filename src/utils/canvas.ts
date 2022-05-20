@@ -200,26 +200,62 @@ const drawBorder = function (
   const newTop = metrics.top + radius;
   const newBottom = metrics.bottom - radius;
 
-  drawLine(ctx, [newLeft, metrics.top, newRight, metrics.top], {
-    lineWidth: width[0],
-    color: color[0],
-    opacity: 1,
-  });
-  drawLine(ctx, [metrics.right, newTop, metrics.right, newBottom], {
-    lineWidth: width[1],
-    color: color[1],
-    opacity: 1,
-  });
-  drawLine(ctx, [newLeft, metrics.bottom, newRight, metrics.bottom], {
-    lineWidth: width[2],
-    color: color[2],
-    opacity: 1,
-  });
-  drawLine(ctx, [metrics.left, newTop, metrics.left, newBottom], {
-    lineWidth: width[3],
-    color: color[3],
-    opacity: 1,
-  });
+  drawLine(
+    ctx,
+    [
+      radius ? newLeft : outerMetrics.left,
+      metrics.top,
+      radius ? newRight : outerMetrics.right,
+      metrics.top,
+    ],
+    {
+      lineWidth: width[0],
+      color: color[0],
+      opacity: 1,
+    }
+  );
+  drawLine(
+    ctx,
+    [
+      metrics.right,
+      radius ? newTop : outerMetrics.top,
+      metrics.right,
+      radius ? newBottom : outerMetrics.bottom,
+    ],
+    {
+      lineWidth: width[1],
+      color: color[1],
+      opacity: 1,
+    }
+  );
+  drawLine(
+    ctx,
+    [
+      radius ? newLeft : outerMetrics.left,
+      metrics.bottom,
+      radius ? newRight : outerMetrics.right,
+      metrics.bottom,
+    ],
+    {
+      lineWidth: width[2],
+      color: color[2],
+      opacity: 1,
+    }
+  );
+  drawLine(
+    ctx,
+    [
+      metrics.left,
+      radius ? newTop : outerMetrics.top,
+      metrics.left,
+      radius ? newBottom : outerMetrics.bottom,
+    ],
+    {
+      lineWidth: width[3],
+      color: color[3],
+      opacity: 1,
+    }
+  );
 
   if (width[0]) {
     if (width[1]) {
