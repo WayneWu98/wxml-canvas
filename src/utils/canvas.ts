@@ -29,19 +29,12 @@ export const normalizer = {
   },
 };
 
-const clipRect = function (
+function createRectPath(
   ctx: WechatMiniprogram.CanvasContext,
-  {
-    left,
-    top,
-    right,
-    bottom,
-    width,
-    height,
-    radius,
-  }: Metrics & { radius?: number }
+  metrics: Metrics,
+  radius: number = 0
 ) {
-  ctx.beginPath();
+  const { left, top, right, bottom, width, height } = metrics;
   if (radius) {
     const newLeft = left + radius;
     const newRight = right - radius;
@@ -56,13 +49,41 @@ const clipRect = function (
     ctx.lineTo(newLeft, bottom);
     ctx.arc(newLeft, newBottom, radius, Math.PI / 2, Math.PI);
     ctx.lineTo(left, newTop);
-    ctx.arc(newLeft, newTop, radius, Math.PI, -Math.PI / 2);
+    ctx.arc(newLeft, newTop, radius, Math.PI, (Math.PI * 3) / 2);
   } else {
     ctx.rect(left, top, width, height);
   }
+}
+
+function clipRect(
+  ctx: WechatMiniprogram.CanvasContext,
+  { metrics, radius }: { metrics: Metrics; radius?: number },
+  outer?: false
+): void;
+function clipRect(
+  ctx: WechatMiniprogram.CanvasContext,
+  { metrics, radius }: { metrics: Metrics; radius?: number },
+  outer: true,
+  containerSize: [number, number]
+): void;
+function clipRect(
+  ctx: WechatMiniprogram.CanvasContext,
+  { metrics, radius }: { metrics: Metrics; radius?: number },
+  outer: boolean = false,
+  containerSize?: [number, number]
+) {
+  ctx.beginPath();
+  createRectPath(ctx, metrics, radius);
+  if (outer && containerSize?.length) {
+    ctx.moveTo(0, 0);
+    ctx.lineTo(0, containerSize[1]);
+    ctx.lineTo(containerSize[0], containerSize[1]);
+    ctx.lineTo(containerSize[0], 0);
+    ctx.lineTo(0, 0);
+  }
   ctx.closePath();
   ctx.clip();
-};
+}
 
 const clipCircle = function (
   ctx: WechatMiniprogram.CanvasContext,
@@ -143,7 +164,7 @@ const drawColor = function (
 ): Promise<void> {
   ctx.save();
   ctx.globalAlpha = opacity;
-  clipRect(ctx, { ...metrics, radius });
+  clipRect(ctx, { metrics, radius });
   ctx.fillStyle = color;
   ctx.fill();
   ctx.restore();
@@ -169,7 +190,7 @@ const drawImage = function (
         tw: el.metrics.width,
         th: el.metrics.height,
       });
-      clipRect(ctx, { ...el.metrics, radius: el.radius });
+      clipRect(ctx, { metrics: el.metrics, radius: el.radius });
       ctx.drawImage(
         img as any,
         sx,
@@ -194,7 +215,7 @@ const drawBorder = function (
   ctx: WechatMiniprogram.CanvasContext
 ): Promise<void> {
   ctx.save();
-  clipRect(ctx, { ...outerMetrics, radius });
+  clipRect(ctx, { metrics: outerMetrics, radius });
   const newLeft = metrics.left + radius;
   const newRight = metrics.right - radius;
   const newTop = metrics.top + radius;
@@ -321,6 +342,29 @@ const drawBorder = function (
   return Promise.resolve();
 };
 
+const drawShadow = function (
+  el: IShadowElement,
+  ctx: WechatMiniprogram.CanvasContext,
+  containerSize: [number, number]
+) {
+  ctx.save();
+  ctx.shadowColor = el.color as any;
+  ctx.shadowBlur = el.blur;
+  ctx.shadowOffsetX = el.offsetX;
+  ctx.shadowOffsetY = el.offsetY;
+  clipRect(
+    ctx,
+    { metrics: el.metrics, radius: el.radius },
+    true,
+    containerSize
+  );
+  ctx.beginPath();
+  createRectPath(ctx, el.metrics, el.radius);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+};
+
 export const draw = (
   els: IElement[],
   ctx: WechatMiniprogram.CanvasContext,
@@ -341,6 +385,11 @@ export const draw = (
           return drawImage(el as IImageElement, ctx, canvas);
         case ELEMENT_TYPE.BORDER:
           return drawBorder(el as IBorderElement, ctx);
+        case ELEMENT_TYPE.SHADOW:
+          return drawShadow(el as IShadowElement, ctx, [
+            canvas.width,
+            canvas.height,
+          ]);
       }
     });
   });

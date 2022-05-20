@@ -17,6 +17,7 @@ const computedStyle: StyleName[] = [
   'borderRadius',
   'font',
   'opacity',
+  'boxShadow',
 ];
 
 export type IPureWXML = Metrics & {
@@ -143,6 +144,9 @@ export const parse2els = function (
     if (wxml.style.borderWidth && wxml.style.borderWidth !== '0px') {
       els.push(createBorderEl(wxml));
     }
+    if (wxml.style.boxShadow && wxml.style.boxShadow !== 'none') {
+      els.push(createShadowEl(wxml));
+    }
   });
   console.log('els', els);
 
@@ -190,6 +194,22 @@ const createBorderEl = function (wxml: INormalizedWXML): IBorderElement {
     color: parseBorderColor(wxml.style.borderColor!),
     width,
     radius: parseFittedRadius(wxml.style.borderRadius, metrics),
+    opacity: parseFloat(wxml.style.opacity!),
+  };
+};
+
+const createShadowEl = function (wxml: INormalizedWXML): IShadowElement {
+  const [color, offsetX, offsetY, blur] =
+    wxml.style.boxShadow.split(/(?<=[^\,])\s/);
+
+  return {
+    type: ELEMENT_TYPE.SHADOW,
+    metrics: wxml.metrics,
+    color,
+    radius: parseFittedRadius(wxml.style.borderRadius, wxml.metrics),
+    offsetX: parseSize(offsetX),
+    offsetY: parseSize(offsetY),
+    blur: parseSize(blur),
     opacity: parseFloat(wxml.style.opacity!),
   };
 };

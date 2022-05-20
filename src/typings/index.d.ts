@@ -33,6 +33,7 @@ const enum ELEMENT_TYPE {
   IMAGE = 'image',
   TEXT = 'text',
   BORDER = 'border',
+  SHADOW = 'shadow',
 }
 
 interface IElement {
@@ -54,6 +55,7 @@ interface Style {
   opacity: string;
   borderWidth: string;
   borderColor: string;
+  boxShadow: string;
 }
 
 type StyleName = keyof Style;
@@ -86,5 +88,14 @@ interface IBorderElement extends IElement {
   outerMetrics: Metrics;
   color: [string, string, string, string];
   width: [number, number, number, number];
+  radius: number;
+}
+
+interface IShadowElement extends IElement {
+  type: ELEMENT_TYPE.SHADOw;
+  color: string;
+  blur: number;
+  offsetX: number;
+  offsetY: number;
   radius: number;
 }
