@@ -97,3 +97,14 @@ export const parseBorderColor = function (borderColor: string) {
   }
   return color as [string, string, string, string];
 };
+
+export const parseFittedRadius = function (
+  radius: string | number,
+  { width, height }: Metrics
+) {
+  radius = parseSize(radius as string);
+  if (radius > Math.min(width, height) / 2) {
+    return Math.min(width, height) / 2;
+  }
+  return radius;
+};

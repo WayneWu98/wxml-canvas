@@ -4,6 +4,7 @@ import {
   parseBgSize2Mode,
   parseBorderWidth,
   parseBorderColor,
+  parseFittedRadius,
 } from './style-parser';
 
 const computedStyle: StyleName[] = [
@@ -65,11 +66,20 @@ export const queryWXML = function (
 
 export const normalizeWxmls = function (wxmls: IPureWXML[]) {
   const result: INormalizedWXML[] = [];
-  const wrapper = constructWXML(wxmls.shift());
+  const wrapper = wxmls.shift();
+  const refMetrics = {
+    left: wrapper?.left,
+    top: wrapper?.top,
+    right: wrapper?.right,
+    bottom: wrapper?.bottom,
+    width: wrapper?.width,
+    height: wrapper?.height,
+  };
+  const normalizedWrapper = constructWXML(wrapper);
 
-  result.push(wrapper);
+  result.push(normalizedWrapper);
   wxmls.forEach(wxml => {
-    result.push(constructWXML(wxml, wrapper.rawMetrics));
+    result.push(constructWXML(wxml, refMetrics as Metrics));
   });
 
   console.log('normalized', result);
@@ -77,18 +87,7 @@ export const normalizeWxmls = function (wxmls: IPureWXML[]) {
   return result;
 };
 
-export const computeMetrcs = (wxml: any, refMetrics?: Metrics): Metrics => {
-  if (!refMetrics) {
-    return {
-      left: 0,
-      right: wxml.right - wxml.left,
-      top: 0,
-      bottom: wxml.bottom - wxml.top,
-      width: wxml.width,
-      height: wxml.height,
-    };
-  }
-
+export const computeMetrcs = (wxml: any, refMetrics: Metrics): Metrics => {
   return {
     left: wxml.left - refMetrics.left,
     top: wxml.top - refMetrics.top,
@@ -99,7 +98,10 @@ export const computeMetrcs = (wxml: any, refMetrics?: Metrics): Metrics => {
   };
 };
 
-const constructWXML = (wxml: any, refMetrics?: Metrics): INormalizedWXML => {
+const constructWXML = (
+  wxml: any,
+  refMetrics: Metrics = wxml
+): INormalizedWXML => {
   if (wxml.backgroundImage && /^url\(.*\)$/.test(wxml.backgroundImage)) {
     wxml.src = wxml.backgroundImage.replace(/^url\("?(.*)"?\)$/, '$1');
     wxml.backgroundImage = '';
@@ -113,14 +115,6 @@ const constructWXML = (wxml: any, refMetrics?: Metrics): INormalizedWXML => {
     src: wxml.src,
     mode: wxml.mode,
     metrics: computeMetrcs(wxml, refMetrics),
-    rawMetrics: {
-      left: wxml.left,
-      right: wxml.right,
-      top: wxml.top,
-      bottom: wxml.bottom,
-      width: wxml.width,
-      height: wxml.height,
-    },
     style: style as Style,
   };
 };
@@ -160,13 +154,11 @@ const createColorEl = function (
   color: string = wxml.style.backgroundColor!,
   ctx?: WechatMiniprogram.CanvasContext
 ): IColorElement {
-  const metrics = wxml.metrics;
-
   return {
     type: ELEMENT_TYPE.COLOR,
     color: parseColor(color, ctx, wxml.metrics),
-    radius: parseSize(wxml.style.borderRadius!),
-    metrics,
+    radius: parseFittedRadius(wxml.style.borderRadius, wxml.metrics),
+    metrics: wxml.metrics,
     opacity: parseFloat(wxml.style.opacity!),
   };
 };
@@ -176,7 +168,7 @@ const createImageEl = function (wxml: INormalizedWXML): IImageElement {
     type: ELEMENT_TYPE.IMAGE,
     metrics: wxml.metrics,
     src: wxml.src!,
-    radius: parseSize(wxml.style.borderRadius!),
+    radius: parseFittedRadius(wxml.style.borderRadius, wxml.metrics),
     mode: wxml.mode!,
     opacity: parseFloat(wxml.style.opacity!),
   };
@@ -186,10 +178,10 @@ const createBorderEl = function (wxml: INormalizedWXML): IBorderElement {
   const width = parseBorderWidth(wxml.style.borderWidth!);
   const metrics = {
     ...wxml.metrics,
-    left: wxml.metrics.left + Math.ceil(width[3] / 2),
-    top: wxml.metrics.top + Math.ceil(width[0] / 2),
-    right: wxml.metrics.right - Math.ceil(width[1] / 2),
-    bottom: wxml.metrics.bottom - Math.ceil(width[2] / 2),
+    left: wxml.metrics.left + Math.ceil(width[3] / 2) - 1,
+    top: wxml.metrics.top + Math.ceil(width[0] / 2) - 1,
+    right: wxml.metrics.right - Math.ceil(width[1] / 2) + 1,
+    bottom: wxml.metrics.bottom - Math.ceil(width[2] / 2) + 1,
   };
   return {
     type: ELEMENT_TYPE.BORDER,
@@ -197,7 +189,7 @@ const createBorderEl = function (wxml: INormalizedWXML): IBorderElement {
     outerMetrics: wxml.metrics,
     color: parseBorderColor(wxml.style.borderColor!),
     width,
-    radius: parseSize(wxml.style.borderRadius!),
+    radius: parseFittedRadius(wxml.style.borderRadius, metrics),
     opacity: parseFloat(wxml.style.opacity!),
   };
 };
