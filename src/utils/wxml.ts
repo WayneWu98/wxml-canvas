@@ -92,9 +92,6 @@ export const normalizeWxmls = function (wxmls: IPureWXML[]) {
   wxmls.forEach(wxml => {
     result.push(constructWXML(wxml, refMetrics as Metrics));
   });
-
-  console.log('normalized', result);
-
   return result;
 };
 
@@ -114,7 +111,7 @@ const constructWXML = (
   refMetrics: Metrics = wxml
 ): INormalizedWXML => {
   if (wxml.backgroundImage && /^url\(.*\)$/.test(wxml.backgroundImage)) {
-    wxml.src = wxml.backgroundImage.replace(/^url\("?(.*)"?\)$/, '$1');
+    wxml.src = wxml.backgroundImage.replace(/^url\("?(.*?)"?\)$/, '$1');
     wxml.backgroundImage = '';
     wxml.mode = parseBgSize2Mode(wxml.backgroundSize!);
   }
@@ -161,8 +158,6 @@ export const parse2els = function (
       els.push(createTextEl(wxml));
     }
   });
-  console.log('els', els);
-
   return els;
 };
 
