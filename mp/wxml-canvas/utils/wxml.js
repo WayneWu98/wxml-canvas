@@ -54,7 +54,6 @@ export const normalizeWxmls = function (wxmls) {
     wxmls.forEach(wxml => {
         result.push(constructWXML(wxml, refMetrics));
     });
-    console.log('normalized', result);
     return result;
 };
 export const computeMetrcs = (wxml, refMetrics) => {
@@ -70,7 +69,7 @@ export const computeMetrcs = (wxml, refMetrics) => {
 const constructWXML = (wxml, refMetrics = wxml) => {
     var _a;
     if (wxml.backgroundImage && /^url\(.*\)$/.test(wxml.backgroundImage)) {
-        wxml.src = wxml.backgroundImage.replace(/^url\("?(.*)"?\)$/, '$1');
+        wxml.src = wxml.backgroundImage.replace(/^url\("?(.*?)"?\)$/, '$1');
         wxml.backgroundImage = '';
         wxml.mode = parseBgSize2Mode(wxml.backgroundSize);
     }
@@ -103,7 +102,6 @@ export const parse2els = function (wxmls, ctx, canvas) {
             els.push(createTextEl(wxml));
         }
     });
-    console.log('els', els);
     return els;
 };
 const createColorEl = function (wxml, color = wxml.style.backgroundColor, ctx) {

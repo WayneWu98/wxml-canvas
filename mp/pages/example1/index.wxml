@@ -1,0 +1,12 @@
+<canvas id="canvas" canvas-id="canvas" type="2d" />
+
+<view class="billboard">
+  <view class="name" data-text="颐和源景">颐和源景</view>
+  <view class="data">
+    <view wx:for="{{list}}" wx:key="index" class="row">
+      <view class="left" data-text="{{item[0]}}">{{item[0]}}</view>
+      <view class="right" data-text="{{item[1]}}">{{item[1]}}</view>
+    </view>
+  </view>
+  <image class="qr-code" src="https://resource.bearye.cn/qr-code_2022-05-20-20:59:32.png" mode="aspectFill"/>
+</view>
