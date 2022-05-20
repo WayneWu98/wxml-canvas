@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.bottomRight = exports.bottomLeft = exports.topRight = exports.topLeft = exports.right = exports.left = exports.center = exports.bottom = exports.top = exports.heightFix = exports.widthFix = exports.aspectFill = exports.aspectFit = exports.scaleToFill = void 0;
-const scaleToFill = function ({ sw, sh, tw, th }) {
+export const scaleToFill = function ({ sw, sh, tw, th }) {
     return {
         sx: 0,
         sy: 0,
@@ -13,8 +10,7 @@ const scaleToFill = function ({ sw, sh, tw, th }) {
         th,
     };
 };
-exports.scaleToFill = scaleToFill;
-const aspectFit = function ({ sw, sh, tw, th }) {
+export const aspectFit = function ({ sw, sh, tw, th }) {
     const sr = sw / sh;
     const tr = tw / th;
     if (sr > tr) {
@@ -40,8 +36,7 @@ const aspectFit = function ({ sw, sh, tw, th }) {
         th,
     };
 };
-exports.aspectFit = aspectFit;
-const aspectFill = function ({ sw, sh, tw, th }) {
+export const aspectFill = function ({ sw, sh, tw, th }) {
     const sr = sw / sh;
     const tr = tw / th;
     if (sr > tr) {
@@ -67,8 +62,7 @@ const aspectFill = function ({ sw, sh, tw, th }) {
         th,
     };
 };
-exports.aspectFill = aspectFill;
-const widthFix = function ({ sw, sh, tw, th }) {
+export const widthFix = function ({ sw, sh, tw, th }) {
     return {
         sx: 0,
         sy: 0,
@@ -80,8 +74,7 @@ const widthFix = function ({ sw, sh, tw, th }) {
         th,
     };
 };
-exports.widthFix = widthFix;
-const heightFix = function ({ sw, sh, tw, th }) {
+export const heightFix = function ({ sw, sh, tw, th }) {
     return {
         sx: 0,
         sy: 0,
@@ -93,8 +86,7 @@ const heightFix = function ({ sw, sh, tw, th }) {
         th,
     };
 };
-exports.heightFix = heightFix;
-const top = function ({ sw, sh, tw, th }) {
+export const top = function ({ sw, sh, tw, th }) {
     return {
         sx: 0,
         sy: 0,
@@ -106,8 +98,7 @@ const top = function ({ sw, sh, tw, th }) {
         th: sh,
     };
 };
-exports.top = top;
-const bottom = function ({ sw, sh, tw, th }) {
+export const bottom = function ({ sw, sh, tw, th }) {
     return {
         sx: 0,
         sy: 0,
@@ -119,8 +110,7 @@ const bottom = function ({ sw, sh, tw, th }) {
         th: sh,
     };
 };
-exports.bottom = bottom;
-const center = function ({ sw, sh, tw, th }) {
+export const center = function ({ sw, sh, tw, th }) {
     return {
         sx: 0,
         sy: 0,
@@ -132,8 +122,7 @@ const center = function ({ sw, sh, tw, th }) {
         th: sh,
     };
 };
-exports.center = center;
-const left = function ({ sw, sh, tw, th }) {
+export const left = function ({ sw, sh, tw, th }) {
     return {
         sx: 0,
         sy: 0,
@@ -145,8 +134,7 @@ const left = function ({ sw, sh, tw, th }) {
         th: sh,
     };
 };
-exports.left = left;
-const right = function ({ sw, sh, tw, th }) {
+export const right = function ({ sw, sh, tw, th }) {
     return {
         sx: 0,
         sy: 0,
@@ -158,8 +146,7 @@ const right = function ({ sw, sh, tw, th }) {
         th: sh,
     };
 };
-exports.right = right;
-const topLeft = function ({ sw, sh, tw, th }) {
+export const topLeft = function ({ sw, sh, tw, th }) {
     return {
         sx: 0,
         sy: 0,
@@ -171,8 +158,7 @@ const topLeft = function ({ sw, sh, tw, th }) {
         th: sh,
     };
 };
-exports.topLeft = topLeft;
-const topRight = function ({ sw, sh, tw, th }) {
+export const topRight = function ({ sw, sh, tw, th }) {
     return {
         sx: 0,
         sy: 0,
@@ -184,8 +170,7 @@ const topRight = function ({ sw, sh, tw, th }) {
         th: sh,
     };
 };
-exports.topRight = topRight;
-const bottomLeft = function ({ sw, sh, tw, th }) {
+export const bottomLeft = function ({ sw, sh, tw, th }) {
     return {
         sx: 0,
         sy: 0,
@@ -197,8 +182,7 @@ const bottomLeft = function ({ sw, sh, tw, th }) {
         th: sh,
     };
 };
-exports.bottomLeft = bottomLeft;
-const bottomRight = function ({ sw, sh, tw, th }) {
+export const bottomRight = function ({ sw, sh, tw, th }) {
     return {
         sx: 0,
         sy: 0,
@@ -210,20 +194,19 @@ const bottomRight = function ({ sw, sh, tw, th }) {
         th: sh,
     };
 };
-exports.bottomRight = bottomRight;
-exports.default = {
-    ["scaleToFill"]: exports.scaleToFill,
-    ["aspectFit"]: exports.aspectFit,
-    ["aspectFill"]: exports.aspectFill,
-    ["widthFix"]: exports.widthFix,
-    ["heightFix"]: exports.heightFix,
-    ["top"]: exports.top,
-    ["bottom"]: exports.bottom,
-    ["center"]: exports.center,
-    ["left"]: exports.left,
-    ["right"]: exports.right,
-    ["top left"]: exports.topLeft,
-    ["top right"]: exports.topRight,
-    ["bottom left"]: exports.bottomLeft,
-    ["bottom right"]: exports.bottomRight,
+export default {
+    ["scaleToFill"]: scaleToFill,
+    ["aspectFit"]: aspectFit,
+    ["aspectFill"]: aspectFill,
+    ["widthFix"]: widthFix,
+    ["heightFix"]: heightFix,
+    ["top"]: top,
+    ["bottom"]: bottom,
+    ["center"]: center,
+    ["left"]: left,
+    ["right"]: right,
+    ["top left"]: topLeft,
+    ["top right"]: topRight,
+    ["bottom left"]: bottomLeft,
+    ["bottom right"]: bottomRight,
 };

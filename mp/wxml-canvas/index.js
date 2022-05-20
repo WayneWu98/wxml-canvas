@@ -1,6 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const index_1 = require("./utils/index");
+import { queryWXML, normalizeWxmls, parse2els, draw } from './utils/index';
 const initialOptions = {
     width: 750,
     height: 1334,
@@ -14,7 +12,7 @@ var EventType;
     EventType["ERROR"] = "error";
     EventType["FINISH"] = "finish";
 })(EventType || (EventType = {}));
-class WXMLCanvas {
+export default class WXMLCanvas {
     constructor(options) {
         this.isReady = false;
         this.listeners = {
@@ -62,15 +60,15 @@ class WXMLCanvas {
         });
     }
     draw() {
-        (0, index_1.queryWXML)(this.options.classNames, this.options.instanceContext)
-            .then(index_1.normalizeWxmls)
+        queryWXML(this.options.classNames, this.options.instanceContext)
+            .then(normalizeWxmls)
             .then(res => {
             this._canvas.width = res[0].metrics.width;
             this._canvas.height = res[0].metrics.height;
-            return (0, index_1.parse2els)(res, this.ctx, this.canvas);
+            return parse2els(res, this.ctx, this.canvas);
         })
             .then(els => {
-            (0, index_1.draw)(els, this.ctx, this.canvas);
+            draw(els, this.ctx, this.canvas);
         });
     }
     on(eventType, callback) {
@@ -94,4 +92,3 @@ class WXMLCanvas {
         }
     }
 }
-exports.default = WXMLCanvas;

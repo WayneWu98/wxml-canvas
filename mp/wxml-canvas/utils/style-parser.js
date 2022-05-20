@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.parseShadow = exports.parseTextOverflow2Endian = exports.parsePadding = exports.parseLineHeight = exports.parseFittedRadius = exports.parseBorderColor = exports.parseBorderWidth = exports.parseBgSize2Mode = exports.parseSize = exports.parseColor = void 0;
-const parseColor = function (rawColor, ctx, metrics) {
+export const parseColor = function (rawColor, ctx, metrics) {
     if (rawColor.startsWith('linear-gradient') && metrics && ctx) {
         const splitted = rawColor
             .replace(/linear-gradient\((.*)\)$/, '$1')
@@ -32,7 +29,7 @@ const parseColor = function (rawColor, ctx, metrics) {
         splitted
             .map(s => s.split(/\s(?=[^\s]+$)/))
             .forEach(([color, position]) => {
-            gradient.addColorStop((0, exports.parseSize)(position, refSize) / refSize, color);
+            gradient.addColorStop(parseSize(position, refSize) / refSize, color);
         });
         return gradient;
     }
@@ -41,15 +38,13 @@ const parseColor = function (rawColor, ctx, metrics) {
     }
     return '';
 };
-exports.parseColor = parseColor;
-const parseSize = function (size, refSize) {
+export const parseSize = function (size, refSize) {
     if (/%$/.test(size)) {
         return (parseFloat(size) / 100) * (refSize !== null && refSize !== void 0 ? refSize : 1);
     }
     return parseFloat(size);
 };
-exports.parseSize = parseSize;
-const parseBgSize2Mode = function (bgPosition) {
+export const parseBgSize2Mode = function (bgPosition) {
     switch (bgPosition) {
         case 'cover':
             return "aspectFill";
@@ -59,9 +54,8 @@ const parseBgSize2Mode = function (bgPosition) {
             return "top left";
     }
 };
-exports.parseBgSize2Mode = parseBgSize2Mode;
-const parseBorderWidth = function (borderWidth) {
-    const ws = borderWidth.split(' ').map(exports.parseSize);
+export const parseBorderWidth = function (borderWidth) {
+    const ws = borderWidth.split(' ').map(parseSize);
     let parsed;
     if (ws.length === 1) {
         parsed = [ws[0], ws[0], ws[0], ws[0]];
@@ -77,8 +71,7 @@ const parseBorderWidth = function (borderWidth) {
     }
     return parsed;
 };
-exports.parseBorderWidth = parseBorderWidth;
-const parseBorderColor = function (borderColor) {
+export const parseBorderColor = function (borderColor) {
     const colors = borderColor.split(/\s(?=[(rgb)(#)])/);
     let color;
     if (colors.length === 1) {
@@ -95,24 +88,21 @@ const parseBorderColor = function (borderColor) {
     }
     return color;
 };
-exports.parseBorderColor = parseBorderColor;
-const parseFittedRadius = function (radius, { width, height }) {
-    radius = (0, exports.parseSize)(radius);
+export const parseFittedRadius = function (radius, { width, height }) {
+    radius = parseSize(radius);
     if (radius > Math.min(width, height) / 2) {
         return Math.min(width, height) / 2;
     }
     return radius;
 };
-exports.parseFittedRadius = parseFittedRadius;
-const parseLineHeight = function (lineHeight, fontSize) {
+export const parseLineHeight = function (lineHeight, fontSize) {
     if (lineHeight === 'normal') {
         return fontSize * 1.375;
     }
-    return (0, exports.parseSize)(lineHeight);
+    return parseSize(lineHeight);
 };
-exports.parseLineHeight = parseLineHeight;
-const parsePadding = function (padding) {
-    const ps = padding.split(' ').map(exports.parseSize);
+export const parsePadding = function (padding) {
+    const ps = padding.split(' ').map(parseSize);
     let parsed;
     if (ps.length === 1) {
         parsed = [ps[0], ps[0], ps[0], ps[0]];
@@ -128,21 +118,18 @@ const parsePadding = function (padding) {
     }
     return parsed;
 };
-exports.parsePadding = parsePadding;
-const parseTextOverflow2Endian = function (textOverflow) {
+export const parseTextOverflow2Endian = function (textOverflow) {
     if (textOverflow === 'ellipsis') {
         return "ellipsis";
     }
     return "clip";
 };
-exports.parseTextOverflow2Endian = parseTextOverflow2Endian;
-const parseShadow = function (boxShadow) {
+export const parseShadow = function (boxShadow) {
     const [color, offsetX, offsetY, blur] = boxShadow.split(/(?<=[^\,])\s/);
     return {
         color,
-        offsetX: (0, exports.parseSize)(offsetX),
-        offsetY: (0, exports.parseSize)(offsetY),
-        blur: (0, exports.parseSize)(blur),
+        offsetX: parseSize(offsetX),
+        offsetY: parseSize(offsetY),
+        blur: parseSize(blur),
     };
 };
-exports.parseShadow = parseShadow;

@@ -1,10 +1,4 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.draw = void 0;
-const img_metrics_1 = __importDefault(require("./img-metrics"));
+import ImgMetrics from './img-metrics';
 function createRectPath(ctx, metrics, radius = 0) {
     const { left, top, right, bottom, width, height } = metrics;
     if (radius) {
@@ -144,7 +138,7 @@ const drawImage = function (el, ctx, canvas) {
         img.onload = () => {
             ctx.save();
             ctx.globalAlpha = el.opacity;
-            const { sx, sy, sw, sh, tx, ty, tw, th } = img_metrics_1.default[el.mode]({
+            const { sx, sy, sw, sh, tx, ty, tw, th } = ImgMetrics[el.mode]({
                 sw: img.width,
                 sh: img.height,
                 tw: el.metrics.width,
@@ -274,7 +268,7 @@ const drawShadow = function (el, ctx, containerSize) {
     ctx.fill();
     ctx.restore();
 };
-const draw = (els, ctx, canvas) => {
+export const draw = (els, ctx, canvas) => {
     let p = Promise.resolve();
     els.forEach(el => {
         p = p.then(() => {
@@ -300,4 +294,3 @@ const draw = (els, ctx, canvas) => {
     });
     return p;
 };
-exports.draw = draw;
