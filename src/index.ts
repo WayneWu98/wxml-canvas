@@ -101,13 +101,15 @@ export default class WXMLCanvas {
         this._canvas!.height = res[0].metrics.height;
         return parse2els(res, this.ctx, this.canvas);
       })
-      .then(els => {
+      .then(els =>
         draw(
           els,
           this.ctx as WechatMiniprogram.CanvasContext,
           this.canvas as WechatMiniprogram.Canvas
-        );
-      });
+        )
+      )
+      .then(() => this.emit(EventType.FINISH))
+      .catch(err => this.emit(EventType.ERROR, err));
   }
 
   on(eventType: EventType, callback: () => void) {
