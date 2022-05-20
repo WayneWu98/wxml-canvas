@@ -15,3 +15,7 @@
 颜色通过background-color设定，并且可以设定background-image设定渐变颜色（linear-gradient和radial-gradient），并且支持设置border-radius属性来控制圆角，linear-gradient角度暂时只支持0deg、90deg、180deg、270deg。
 
 > 注意：background-image: url("...") 会被认为是图像
+
+**阴影**
+
+**文字**

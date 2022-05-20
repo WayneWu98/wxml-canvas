@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.parseBorderColor = exports.parseBorderWidth = exports.parseBgSize2Mode = exports.parseSize = exports.parseColor = void 0;
+exports.parseShadow = exports.parseTextOverflow2Endian = exports.parsePadding = exports.parseLineHeight = exports.parseFittedRadius = exports.parseBorderColor = exports.parseBorderWidth = exports.parseBgSize2Mode = exports.parseSize = exports.parseColor = void 0;
 const parseColor = function (rawColor, ctx, metrics) {
     if (rawColor.startsWith('linear-gradient') && metrics && ctx) {
         const splitted = rawColor
@@ -62,20 +62,20 @@ const parseBgSize2Mode = function (bgPosition) {
 exports.parseBgSize2Mode = parseBgSize2Mode;
 const parseBorderWidth = function (borderWidth) {
     const ws = borderWidth.split(' ').map(exports.parseSize);
-    let width;
+    let parsed;
     if (ws.length === 1) {
-        width = [ws[0], ws[0], ws[0], ws[0]];
+        parsed = [ws[0], ws[0], ws[0], ws[0]];
     }
     else if (ws.length === 2) {
-        width = [ws[0], ws[1], ws[0], ws[1]];
+        parsed = [ws[0], ws[1], ws[0], ws[1]];
     }
     else if (ws.length === 3) {
-        width = [ws[0], ws[1], ws[2], ws[0]];
+        parsed = [ws[0], ws[1], ws[2], ws[0]];
     }
     else {
-        width = [ws[0], ws[1], ws[2], ws[3]];
+        parsed = [ws[0], ws[1], ws[2], ws[3]];
     }
-    return width;
+    return parsed;
 };
 exports.parseBorderWidth = parseBorderWidth;
 const parseBorderColor = function (borderColor) {
@@ -96,3 +96,53 @@ const parseBorderColor = function (borderColor) {
     return color;
 };
 exports.parseBorderColor = parseBorderColor;
+const parseFittedRadius = function (radius, { width, height }) {
+    radius = (0, exports.parseSize)(radius);
+    if (radius > Math.min(width, height) / 2) {
+        return Math.min(width, height) / 2;
+    }
+    return radius;
+};
+exports.parseFittedRadius = parseFittedRadius;
+const parseLineHeight = function (lineHeight, fontSize) {
+    if (lineHeight === 'normal') {
+        return fontSize * 1.375;
+    }
+    return (0, exports.parseSize)(lineHeight);
+};
+exports.parseLineHeight = parseLineHeight;
+const parsePadding = function (padding) {
+    const ps = padding.split(' ').map(exports.parseSize);
+    let parsed;
+    if (ps.length === 1) {
+        parsed = [ps[0], ps[0], ps[0], ps[0]];
+    }
+    else if (ps.length === 2) {
+        parsed = [ps[0], ps[1], ps[0], ps[1]];
+    }
+    else if (ps.length === 3) {
+        parsed = [ps[0], ps[1], ps[2], ps[0]];
+    }
+    else {
+        parsed = [ps[0], ps[1], ps[2], ps[3]];
+    }
+    return parsed;
+};
+exports.parsePadding = parsePadding;
+const parseTextOverflow2Endian = function (textOverflow) {
+    if (textOverflow === 'ellipsis') {
+        return "ellipsis";
+    }
+    return "clip";
+};
+exports.parseTextOverflow2Endian = parseTextOverflow2Endian;
+const parseShadow = function (boxShadow) {
+    const [color, offsetX, offsetY, blur] = boxShadow.split(/(?<=[^\,])\s/);
+    return {
+        color,
+        offsetX: (0, exports.parseSize)(offsetX),
+        offsetY: (0, exports.parseSize)(offsetY),
+        blur: (0, exports.parseSize)(blur),
+    };
+};
+exports.parseShadow = parseShadow;
