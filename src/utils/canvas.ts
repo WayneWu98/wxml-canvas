@@ -1,34 +1,5 @@
 import ImgMetrics from './img-metrics';
 
-export const normalizer = {
-  size(str: string) {
-    return str.replace(/[^\d]/g, '');
-  },
-  isUrl(str: string) {
-    return /^url\(.*\)$/.test(str);
-  },
-  url(str: string) {
-    return str.replace(/^url\("(.*)"\)$/, '$1');
-  },
-  isLinearGradient(str: string) {
-    return /^linear-gradient\(.*\)$/.test(str);
-  },
-  linearGradient(str: string, metrics: Metrics, ctx: CanvasRenderingContext2D) {
-    const splited = str.replace(/^linear-gradient\((.*)\)$/, '$1').split(',');
-    let linearPosition = {
-      x0: (metrics.right - metrics.left) / 2,
-      y0: 0,
-      x1: (metrics.right - metrics.left) / 2,
-      y1: 1,
-    };
-    if (/deg$/.test(splited[0])) {
-      const radian = (parseFloat(splited.pop() as string) / 360) * Math.PI * 2;
-      const w = (Math.tan(radian) * metrics.height) / 2;
-      const h = (Math.atan(radian) * metrics.width) / 2;
-    }
-  },
-};
-
 function createRectPath(
   ctx: WechatMiniprogram.CanvasContext,
   metrics: Metrics,
@@ -55,6 +26,18 @@ function createRectPath(
   }
 }
 
+function mesureText(
+  ctx: WechatMiniprogram.CanvasContext,
+  text: string,
+  font?: string
+) {
+  ctx.save();
+  font && (ctx.font = font);
+  const metrics = ctx.measureText(text);
+  ctx.restore();
+  return metrics;
+}
+
 function clipRect(
   ctx: WechatMiniprogram.CanvasContext,
   { metrics, radius }: { metrics: Metrics; radius?: number },
@@ -64,7 +47,7 @@ function clipRect(
   ctx: WechatMiniprogram.CanvasContext,
   { metrics, radius }: { metrics: Metrics; radius?: number },
   outer: true,
-  containerSize: [number, number]
+  containerSize?: [number, number]
 ): void;
 function clipRect(
   ctx: WechatMiniprogram.CanvasContext,
@@ -75,6 +58,7 @@ function clipRect(
   ctx.beginPath();
   createRectPath(ctx, metrics, radius);
   if (outer && containerSize?.length) {
+    // 使用非零环绕原则裁切路径外围区域
     ctx.moveTo(0, 0);
     ctx.lineTo(0, containerSize[1]);
     ctx.lineTo(containerSize[0], containerSize[1]);
@@ -84,20 +68,6 @@ function clipRect(
   ctx.closePath();
   ctx.clip();
 }
-
-const clipCircle = function (
-  ctx: WechatMiniprogram.CanvasContext,
-  { x, y, r }: { x: number; y: number; r: number }
-) {
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, 2 * Math.PI);
-  ctx.clip();
-};
-
-const computeImgMetrcsByMode = function (
-  { sw, sh, tw, th }: { sw: number; sh: number; tw: number; th: number },
-  mode: IMAGE_MODE
-) {};
 
 const drawLine = function (
   ctx: WechatMiniprogram.CanvasContext,
@@ -172,7 +142,80 @@ const drawColor = function (
   return Promise.resolve();
 };
 
-const drawText = function () {};
+const drawText = function (
+  el: ITextElement,
+  ctx: WechatMiniprogram.CanvasContext
+) {
+  const {
+    metrics,
+    text,
+    lineHeight,
+    textAlign,
+    font,
+    opacity,
+    color,
+    endian,
+    shadow,
+  } = el;
+  const textArray = text.split('');
+  ctx.save();
+  clipRect(ctx, { metrics });
+  ctx.globalAlpha = opacity;
+  ctx.font = font;
+  ctx.fillStyle = color;
+  // @ts-ignore-next-line
+  ctx.textAlign = textAlign;
+  // @ts-ignore-next-line
+  ctx.textBaseline = 'middle';
+  const nLine = Math.round(metrics.height / lineHeight);
+  const textList: string[] = [textArray.shift() ?? ''];
+  while (textArray.length) {
+    const w = textArray.shift() as string;
+    const str = textList?.[textList.length - 1] ?? '';
+    if (
+      textList.length >= nLine &&
+      endian === TEXT_ENDIAN.ELLIPSIS &&
+      mesureText(ctx, str + w).width > metrics.width
+    ) {
+      // 最后一行文字超出宽度，把最后一行文字截断
+      let lastLine = str;
+      while (lastLine) {
+        if (mesureText(ctx, lastLine + '...').width <= metrics.width) {
+          textList[textList.length - 1] = lastLine + '...';
+          break;
+        }
+        lastLine = lastLine.slice(0, -1);
+      }
+      break;
+    }
+    if (mesureText(ctx, str + w, font).width > metrics.width) {
+      textList.push(w);
+    } else {
+      textList.splice(textList.length - 1, 1, str + w);
+    }
+  }
+
+  if (shadow) {
+    ctx.shadowBlur = shadow.blur;
+    // @ts-ignore-next-line
+    ctx.shadowColor = shadow.color;
+    ctx.shadowOffsetX = shadow.offsetX;
+    ctx.shadowOffsetY = shadow.offsetY;
+  }
+
+  let left = metrics.left;
+  if (textAlign === 'center') {
+    left += metrics.width / 2;
+  } else if (textAlign === 'right' || textAlign === 'end') {
+    left += metrics.width;
+  }
+  let top = metrics.top + lineHeight / 2;
+  textList.forEach(text => {
+    ctx.fillText(text, left, top);
+    top += lineHeight;
+  });
+  ctx.restore();
+};
 
 const drawImage = function (
   el: IImageElement,
@@ -390,6 +433,8 @@ export const draw = (
             canvas.width,
             canvas.height,
           ]);
+        case ELEMENT_TYPE.TEXT:
+          return drawText(el as ITextElement, ctx);
       }
     });
   });

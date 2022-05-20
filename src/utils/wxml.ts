@@ -5,9 +5,14 @@ import {
   parseBorderWidth,
   parseBorderColor,
   parseFittedRadius,
+  parsePadding,
+  parseTextOverflow2Endian,
+  parseLineHeight,
+  parseShadow,
 } from './style-parser';
 
 const computedStyle: StyleName[] = [
+  'padding',
   'color',
   'backgroundColor',
   'backgroundImage',
@@ -18,6 +23,11 @@ const computedStyle: StyleName[] = [
   'font',
   'opacity',
   'boxShadow',
+  'textAlign',
+  'textShadow',
+  'textOverflow',
+  'lineHeight',
+  'fontSize',
 ];
 
 export type IPureWXML = Metrics & {
@@ -147,6 +157,9 @@ export const parse2els = function (
     if (wxml.style.boxShadow && wxml.style.boxShadow !== 'none') {
       els.push(createShadowEl(wxml));
     }
+    if (wxml.text) {
+      els.push(createTextEl(wxml));
+    }
   });
   console.log('els', els);
 
@@ -199,17 +212,49 @@ const createBorderEl = function (wxml: INormalizedWXML): IBorderElement {
 };
 
 const createShadowEl = function (wxml: INormalizedWXML): IShadowElement {
-  const [color, offsetX, offsetY, blur] =
-    wxml.style.boxShadow.split(/(?<=[^\,])\s/);
+  const { color, offsetX, offsetY, blur } = parseShadow(wxml.style.boxShadow);
 
   return {
     type: ELEMENT_TYPE.SHADOW,
     metrics: wxml.metrics,
     color,
     radius: parseFittedRadius(wxml.style.borderRadius, wxml.metrics),
-    offsetX: parseSize(offsetX),
-    offsetY: parseSize(offsetY),
-    blur: parseSize(blur),
+    offsetX,
+    offsetY,
+    blur,
     opacity: parseFloat(wxml.style.opacity!),
+  };
+};
+
+const createTextEl = function (wxml: INormalizedWXML): ITextElement {
+  const padding = parsePadding(wxml.style.padding);
+  const metrics = {
+    top: wxml.metrics.top + padding[0],
+    right: wxml.metrics.right - padding[1],
+    bottom: wxml.metrics.bottom - padding[2],
+    left: wxml.metrics.left + padding[3],
+    width: wxml.metrics.width - padding[1] - padding[3],
+    height: wxml.metrics.height - padding[0] - padding[2],
+  };
+  const lineHeight = parseLineHeight(
+    wxml.style.lineHeight,
+    parseSize(wxml.style.fontSize)
+  );
+  const maxLines = metrics.height / lineHeight;
+  return {
+    type: ELEMENT_TYPE.TEXT,
+    metrics,
+    text: wxml.text!,
+    color: wxml.style.color,
+    font: wxml.style.font,
+    endian: parseTextOverflow2Endian(wxml.style.textOverflow),
+    textAlign: wxml.style.textAlign,
+    maxLines,
+    lineHeight,
+    opacity: parseFloat(wxml.style.opacity!),
+    shadow:
+      wxml.style.textShadow && wxml.style.textShadow !== 'none'
+        ? parseShadow(wxml.style.textShadow)
+        : undefined,
   };
 };

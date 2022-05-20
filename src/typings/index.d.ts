@@ -36,6 +36,11 @@ const enum ELEMENT_TYPE {
   SHADOW = 'shadow',
 }
 
+const enum TEXT_ENDIAN {
+  CLIP = 'clip',
+  ELLIPSIS = 'ellipsis',
+}
+
 interface IElement {
   type: ELEMENT_TYPE;
   metrics: Metrics;
@@ -43,6 +48,7 @@ interface IElement {
 }
 
 interface Style {
+  padding: string;
   backgroundColor: string;
   color: string;
   borderRadius: string;
@@ -50,12 +56,17 @@ interface Style {
   backgroundSize: string;
   backgroundImage: string;
   font: string;
+  fontSize: string;
   textAlign: string;
   lineHeight: string;
   opacity: string;
   borderWidth: string;
   borderColor: string;
   boxShadow: string;
+  textOverflow: string;
+  lineHeight: string;
+  textAlign: string;
+  textShadow: string;
 }
 
 type StyleName = keyof Style;
@@ -78,9 +89,16 @@ interface ITextElement extends IElement {
   font: string;
   text: string;
   maxLines: number;
-  endian?: string;
+  endian: TEXT_ENDIAN;
+  textAlign: string;
   lineHeight: number;
   color: string;
+  shadow?: {
+    color: string;
+    blur: number;
+    offsetX: number;
+    offsetY: number;
+  };
 }
 
 interface IBorderElement extends IElement {

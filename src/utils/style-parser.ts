@@ -70,17 +70,17 @@ export const parseBgSize2Mode = function (bgPosition: string) {
 
 export const parseBorderWidth = function (borderWidth: string) {
   const ws = borderWidth.split(' ').map(parseSize);
-  let width;
+  let parsed;
   if (ws.length === 1) {
-    width = [ws[0], ws[0], ws[0], ws[0]];
+    parsed = [ws[0], ws[0], ws[0], ws[0]];
   } else if (ws.length === 2) {
-    width = [ws[0], ws[1], ws[0], ws[1]];
+    parsed = [ws[0], ws[1], ws[0], ws[1]];
   } else if (ws.length === 3) {
-    width = [ws[0], ws[1], ws[2], ws[0]];
+    parsed = [ws[0], ws[1], ws[2], ws[0]];
   } else {
-    width = [ws[0], ws[1], ws[2], ws[3]];
+    parsed = [ws[0], ws[1], ws[2], ws[3]];
   }
-  return width as [number, number, number, number];
+  return parsed as [number, number, number, number];
 };
 
 export const parseBorderColor = function (borderColor: string) {
@@ -107,4 +107,43 @@ export const parseFittedRadius = function (
     return Math.min(width, height) / 2;
   }
   return radius;
+};
+
+export const parseLineHeight = function (lineHeight: string, fontSize: number) {
+  if (lineHeight === 'normal') {
+    return fontSize * 1.375;
+  }
+  return parseSize(lineHeight);
+};
+
+export const parsePadding = function (padding: string) {
+  const ps = padding.split(' ').map(parseSize);
+  let parsed;
+  if (ps.length === 1) {
+    parsed = [ps[0], ps[0], ps[0], ps[0]];
+  } else if (ps.length === 2) {
+    parsed = [ps[0], ps[1], ps[0], ps[1]];
+  } else if (ps.length === 3) {
+    parsed = [ps[0], ps[1], ps[2], ps[0]];
+  } else {
+    parsed = [ps[0], ps[1], ps[2], ps[3]];
+  }
+  return parsed;
+};
+
+export const parseTextOverflow2Endian = function (textOverflow: string) {
+  if (textOverflow === 'ellipsis') {
+    return TEXT_ENDIAN.ELLIPSIS;
+  }
+  return TEXT_ENDIAN.CLIP;
+};
+
+export const parseShadow = function (boxShadow: string) {
+  const [color, offsetX, offsetY, blur] = boxShadow.split(/(?<=[^\,])\s/);
+  return {
+    color,
+    offsetX: parseSize(offsetX),
+    offsetY: parseSize(offsetY),
+    blur: parseSize(blur),
+  };
 };
