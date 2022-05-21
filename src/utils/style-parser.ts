@@ -9,25 +9,65 @@ export const parseColor = function (
       .replace(/linear-gradient\((.*)\)$/, '$1')
       .split(/\,\s(?=[(rgb)(#)])/)
       .map(s => s.trim());
-    let x0 = 0;
-    let y0 = 0;
-    let x1 = 0;
-    let y1 = metrics.height;
+    let x0 = metrics.width / 2;
+    let y0 = metrics.height;
+    let x1 = metrics.width / 2;
+    let y1 = 0;
     let refSize = metrics.height;
-    if (splitted[0].endsWith('deg')) {
-      const angle = splitted.shift();
-      switch (angle) {
-        case '90deg':
-          x0 = y0 = y1 = 0;
-          refSize = x1 = metrics.width;
-          break;
-        case '0deg':
-          x0 = x1 = y1 = 0;
-          refSize = y0 = metrics.height;
-          break;
-        case '270deg':
-          x1 = y0 = y1 = 0;
-          refSize = x0 = metrics.width;
+    let deg = splitted[0].endsWith('deg')
+      ? (parseFloat(splitted.shift() as string) / 180) * Math.PI
+      : Math.PI;
+
+    if (Math.abs((Math.tan(deg) * metrics.height) / 2) < metrics.width / 2) {
+      let reverse = false;
+      if (deg > Math.PI / 2 && deg < (Math.PI * 3) / 2) {
+        reverse = true;
+        deg = deg - Math.PI;
+        deg < 0 && (deg += 2 * Math.PI);
+      }
+      const dy = Math.abs(
+        (metrics.width / 2 - (metrics.height / 2) * Math.tan(deg)) *
+          Math.sin(deg) *
+          Math.sin(Math.PI / 2 - deg)
+      );
+      const dx = dy * Math.tan(deg);
+
+      if (reverse) {
+        x0 = metrics.width / 2 + dx;
+        y0 = -dy;
+        x1 = metrics.width / 2 - dx;
+        y1 = metrics.height + dy;
+      } else {
+        x1 = metrics.width / 2 + dx;
+        y1 = -dy;
+        x0 = metrics.width / 2 - dx;
+        y0 = metrics.height + dy;
+      }
+    } else {
+      deg -= Math.PI / 2;
+      let reverse = false;
+      if (deg > Math.PI / 2 && deg < (Math.PI * 3) / 2) {
+        reverse = true;
+        deg = deg - Math.PI;
+        deg < 0 && (deg += 2 * Math.PI);
+      }
+      const dx = Math.abs(
+        (metrics.height / 2 - (metrics.width / 2) * Math.tan(deg)) *
+          Math.sin(deg) *
+          Math.sin(Math.PI / 2 - deg)
+      );
+      const dy = dx * Math.tan(deg);
+
+      if (reverse) {
+        x0 = metrics.width + dx;
+        y0 = metrics.height / 2 + dy;
+        x1 = -dx;
+        y1 = metrics.height / 2 - dy;
+      } else {
+        x0 = -dx;
+        y0 = metrics.height / 2 - dy;
+        x1 = metrics.width + dx;
+        y1 = metrics.height / 2 + dy;
       }
     }
     const gradient = ctx.createLinearGradient(x0, y0, x1, y1);
