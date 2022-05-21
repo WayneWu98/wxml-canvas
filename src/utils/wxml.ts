@@ -47,15 +47,15 @@ export type INormalizedWXML = {
 };
 
 export const queryWXML = function (
-  classNames: string[] = [],
+  selectors: string[] = [],
   instanceContext?: InstanceContext
 ): Promise<IPureWXML[]> {
   return Promise.all(
-    classNames.map(className => {
+    selectors.map(selector => {
       return new Promise<IPureWXML[]>(resolve => {
         (instanceContext ?? wx)
           .createSelectorQuery()
-          .selectAll(className)
+          .selectAll(selector)
           .fields({
             size: true,
             dataset: true,

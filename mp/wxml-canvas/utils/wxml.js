@@ -17,12 +17,12 @@ const computedStyle = [
     'lineHeight',
     'fontSize',
 ];
-export const queryWXML = function (classNames = [], instanceContext) {
-    return Promise.all(classNames.map(className => {
+export const queryWXML = function (selectors = [], instanceContext) {
+    return Promise.all(selectors.map(selector => {
         return new Promise(resolve => {
             (instanceContext !== null && instanceContext !== void 0 ? instanceContext : wx)
                 .createSelectorQuery()
-                .selectAll(className)
+                .selectAll(selector)
                 .fields({
                 size: true,
                 dataset: true,

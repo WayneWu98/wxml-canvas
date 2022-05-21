@@ -34,11 +34,11 @@ Page({
    * 生命周期函数--监听页面显示
    */
   onShow: function () {
-    const classNames = ['.billboard', '.name', '.row', '.left', '.right', '.qr-code']
+    const selectors = ['.billboard', '.name', '.row', '.left', '.right', '.qr-code']
     const wc = new WC({
       backgroundColor: '#fff',
       canvas: '#canvas',
-      classNames,
+      selectors,
       instanceContext: this
     })
 

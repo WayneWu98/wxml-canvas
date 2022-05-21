@@ -4,7 +4,7 @@ interface IOptions {
   width?: number;
   height?: number;
   canvas: string;
-  classNames: string[];
+  selectors: string[];
   instanceContext?: InstanceContext;
 }
 
@@ -16,7 +16,7 @@ const initialOptions: InitialOptions = {
   width: 750,
   height: 1334,
   instanceContext: wx,
-  classNames: [],
+  selectors: [],
 };
 
 enum EventType {
@@ -94,7 +94,7 @@ export default class WXMLCanvas {
   }
 
   draw() {
-    queryWXML(this.options.classNames, this.options.instanceContext)
+    queryWXML(this.options.selectors, this.options.instanceContext)
       .then(normalizeWxmls)
       .then(res => {
         this._canvas!.width = res[0].metrics.width;
