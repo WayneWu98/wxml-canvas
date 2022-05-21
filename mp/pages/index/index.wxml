@@ -1,9 +1,4 @@
-
-<view class="container">
-  <view class="content">
-    <view class="title" data-text="hello, world.">hello, world.</view>
-  </view>
-  <!-- <image class="img" mode="aspectFill" src="https://images.unsplash.com/photo-1638913970675-b5ec36292665" alt="img" /> -->
+<view class="example-list">
+  <view class="heading">查看例子</view>
+  <navigator class="link" wx:for="{{ examples }}" wx:key="index" url="{{ item }}">Example {{index + 1}}</navigator>
 </view>
-
-<canvas class="canvas" id="canvas" canvas-id="canvas" type="2d"></canvas>

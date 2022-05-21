@@ -1,0 +1,9 @@
+
+<view class="billboard">
+  <view class="type" data-text="Mocard">Mocard</view>
+  <view class="no" data-text="3827 4637 3103 7389">3827 4637 3103 7389</view>
+  <view class="holder-name" data-text="Daniel Austin">Daniel Austin</view>
+  <view class="expired" data-text="02/30">02/30</view>
+</view>
+<Billboard src="{{ src }}" />
+<canvas id="canvas" canvas-id="canvas" type="2d" />

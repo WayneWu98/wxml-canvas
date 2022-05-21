@@ -1,19 +1,11 @@
-// pages/example1/index.js
+// pages/example2/index.js
 import WC from '../../wxml-canvas/index';
-
 Page({
 
   /**
    * 页面的初始数据
    */
   data: {
-    list: [
-      ['房源套数', '287'],
-      ['入围组数', '690'],
-      ['入围分', '0.93'],
-      ['入围比', '1.3'],
-      ['社保系数', '2.1']
-    ],
     src: ''
   },
 
@@ -35,7 +27,7 @@ Page({
    * 生命周期函数--监听页面显示
    */
   onShow: function () {
-    const selectors = ['.billboard', '.name', '.row', '.left', '.right', '.qr-code']
+    const selectors = ['.billboard', '.type', '.no', '.holder-name', '.expired']
     const wc = new WC({
       backgroundColor: '#fff',
       canvas: '#canvas',

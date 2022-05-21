@@ -1,0 +1,6 @@
+<view class="billboard">
+  <image class="img" src="{{ src }}" mode="widthFix" />
+  <view class="footer-btn">
+    <button type="primary" size="default" bindtap="log">打印图像URL</button>
+  </view>
+</view>
