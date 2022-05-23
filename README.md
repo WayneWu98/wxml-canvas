@@ -43,20 +43,82 @@ wc.on('error', err => {
 });
 ```
 
+## 通用实践方式
+
+正常使用wxml+css描述视图，并将wxml选择器按顺序放在数组传递给WXMLCanvas进行实例化，注意描述视图的css样式时统一使用像素单位`px`，因为canvas会自动设置为wxml的尺寸，而`rpx`会转换为`px`产生了缩放问题。
+
+通过设置`position: absolute;`将wxml和canvas进行离屏，绘制完成后，通过`wx.canvasToTempFilePath`将图片转换为临时文件，将路径显示在`image`标签中，同时也可以保存图片。
+
+
+## API
+
+### new WXMLCanvas(Options): WXMLCanvas
+
+Options:
+  1. canvas: string - canvas 选择器，例如 "#canvas"；
+  2. selectors: string[] - 需要查询的 WXML 选择器，例如 `['.billboard', '.name']`，选择器支持类型请参考微信官方文档，注意数组前面的选择器对应的 WXML 节点会被先画到canvas上，所以第一个节点决定了canvas的尺寸；
+  3. instanceContext: object - 实例上下文，默认为`wx`，如果是在component里调用，请传递该参数。
+
+### WXMLCanvas.on(eventType: EventType, callback: Function): void
+
+用来监听一些事件，EventType有以下几种类型：
+
+ 1. ready - 获取 canvas 和 context2d 实例后触发，你应该在这里开始调用`draw`方法进行绘制；
+ 2. error - 抛出错误时触发，回调函数会接受到Error对象；
+ 3. finish - 绘画完成（结束）时触发，这里你可以调用`wx.canvasToTempFilePath`得到临时路径；
+ 4. update - 设置参数更新时触发，暂时还没有什么用，给后面的更新挖个坑。
+
+### WXMLCanvas.off(eventType: EventType, callback: Function): void
+
+取消事件监听，EventType参考上面的`on`方法。
+
+### WXMLCanvas.draw(): void
+
+开始绘制canvas， 必须在`ready`事件触发后调用。
+
 ## 支持的类型
 
 **图像**
 
-可以通过 image 标签或 background-image 的 css 属性添加，同时支持设置 border-radius 属性来控制圆角。图片裁剪、缩放模式和微信小程序 image 标签的 mode 属性相同，background-image 会根据 background-size 的值设定：cover 对应 aspectFill，contain 对应 aspectFit，默认为 top left，不支持 background-position css 属性，固定为 center。
+有两种方式：一是通过image标签，二是设置background-image属性，图像裁剪、缩放模式和微信官方image的mode属性一致，background-image设置的图像，使用background-size属性控制缩放、裁剪模式，`cover`与`aspect fill`等同，`contain`与`aspect fit`等同，默认为`top left`，不支持`background-position`属性，默认所有`background-position`都为`center` 。
+
+> 额外支持的设置：
+> 1. 圆角 `border-radius`
 
 **颜色**
 
-颜色通过 background-color 设定，并且可以设定 background-image 设定渐变颜色（linear-gradient 和 radial-gradient），并且支持设置 border-radius 属性来控制圆角，linear-gradient 角度暂时只支持 0deg、90deg、180deg、270deg。
+颜色通过 background-color 设定，并且可以设定 background-image 设定渐变颜色（linear-gradient）。
 
+> 额外支持的设置：
+> 1. 圆角 `border-radius`
+>
 > 注意：background-image: url("...") 会被认为是图像。
 
 **阴影**
-box-shadow
+通过设置 `box-shadow` 来画阴影，不支持 inset 模式的阴影。
+
+> 额外支持的设置：
+> 1. 圆角 `border-radius`
 
 **文字**
-需要设置结点`data-text`属性，支持设置文字阴影。
+文字需要通过设置节点的`data-text`属性，并需要保证节点的`data-text`属性的值和节点的innerText一致。
+
+> 额外支持的设置：
+> 1. 文字大小 `font-size`
+> 2. 文字颜色 `color`
+> 3. 文字行高 `line-height`
+> 4. 文字对齐方式 `text-align`
+> 5. 文字字体 `font-family`
+> 6. 文字粗细 `font-weight`
+> 7. 文字阴影 `text-shadow`
+> 8. 文本结束字符 `text-overflow`
+>
+> 注意：最好对于每个文本标签都设定 `line-height` 属性，并避免行高大于其容器元素的高度。
+
+**边框**
+可以单独设置容器的四个方向边框，同时只支持统一的圆角设置，边框设置还存在一些问题无法实现html渲染边框的逻辑。
+
+> 额外支持的设置：
+> 1. 圆角 `border-radius`
+> 2. 边框颜色 `border-color`
+> 3. 边框宽度 `border-width`
