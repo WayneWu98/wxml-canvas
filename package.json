@@ -1,6 +1,6 @@
 {
   "name": "wxml-canvas",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "a tool for transforming wxml to canvas",
   "main": "index.js",
   "homepage": "https://github.com/WayneWu98/wxml-canvas",
