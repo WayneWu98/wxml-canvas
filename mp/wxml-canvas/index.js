@@ -36,7 +36,9 @@ export default class WXMLCanvas {
             },
         });
         this._options = options;
-        this._init().then(() => this.emit(EventType.READY));
+        this._init()
+            .then(() => this.emit(EventType.READY))
+            .catch(err => this.emit(EventType.ERROR, err));
     }
     get canvas() {
         return this._canvas;
