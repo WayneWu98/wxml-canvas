@@ -1,8 +1,6 @@
 import { queryWXML, normalizeWxmls, parse2els, draw } from './utils/index';
 
 interface IOptions {
-  width?: number;
-  height?: number;
   canvas: string;
   selectors: string[];
   instanceContext?: InstanceContext;
@@ -13,8 +11,6 @@ type InitialOptions = Required<{
 }>;
 
 const initialOptions: InitialOptions = {
-  width: 750,
-  height: 1334,
   instanceContext: wx,
   selectors: [],
 };
@@ -87,9 +83,6 @@ export default class WXMLCanvas {
 
           this._canvas = res?.[0].node as WechatMiniprogram.Canvas;
           this._ctx = this._canvas.getContext('2d');
-          // this._canvas.width = this.options.width;
-          // this._canvas.height = this.options.height;
-
           resolve(true);
         });
     });
