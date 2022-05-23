@@ -1,7 +1,5 @@
 import { queryWXML, normalizeWxmls, parse2els, draw } from './utils/index';
 const initialOptions = {
-    width: 750,
-    height: 1334,
     instanceContext: wx,
     selectors: [],
 };
