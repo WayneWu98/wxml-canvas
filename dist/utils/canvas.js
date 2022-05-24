@@ -268,10 +268,14 @@ const drawShadow = function (el, ctx, containerSize) {
     ctx.fill();
     ctx.restore();
 };
-export const draw = (els, ctx, canvas) => {
+export const draw = (els, ctx, canvas, instance) => {
     let p = Promise.resolve();
     els.forEach(el => {
         p = p.then(() => {
+            if (instance.isAborted) {
+                instance.abortResolve();
+                throw new Error('Aborted');
+            }
             if (el.metrics.width === 0 || el.metrics.height === 0) {
                 return Promise.resolve();
             }

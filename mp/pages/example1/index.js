@@ -37,27 +37,26 @@ Page({
   onShow: function () {
     const selectors = ['.billboard', '.name', '.row', '.left', '.right', '.qr-code']
     const wc = new WC({
-      backgroundColor: '#fff',
       canvas: '#canvas',
       selectors,
       instanceContext: this
-    })
-
-    wc.on('ready', () => {
-      wc.draw();
     });
 
-    wc.on('finish', () => {
+    wc.on('drawing', () => {
+      console.log('drawing');
+    });
+
+    wc.on('aborted', () => {
+      console.log('aborted')
+    })
+
+    wc.draw().then(() => {
       console.log('finish');
       wx.canvasToTempFilePath({
         canvas: wc.canvas,
       }, this).then(res => {
         this.setData({src: res.tempFilePath})
       });
-    });
-
-    wc.on('error', err => {
-      console.error(err)
     });
   },
 

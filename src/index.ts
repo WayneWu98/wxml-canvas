@@ -16,24 +16,34 @@ const initialOptions: InitialOptions = {
 };
 
 enum EventType {
-  READY = 'ready',
-  UPDATE = 'update',
-  ERROR = 'error',
-  FINISH = 'finish',
+  DRAWING = 'drawing',
+  ABORTED = 'aborted',
 }
 
 interface IListeners {
-  [EventType.READY]: Set<() => void>;
-  [EventType.UPDATE]: Set<() => void>;
-  [EventType.ERROR]: Set<(err: Error) => void>;
-  [EventType.FINISH]: Set<() => void>;
+  [EventType.DRAWING]: Set<() => void>;
+  [EventType.ABORTED]: Set<() => void>;
 }
 
 export default class WXMLCanvas {
   private _canvas?: WechatMiniprogram.Canvas;
   private _ctx?: WechatMiniprogram.CanvasContext;
   private _options: IOptions;
-  private isReady = false;
+  private _els: IElement[] = [];
+  isAborted = false;
+  private _flushing = false;
+  abortResolve: Function = () => Promise.resolve();
+
+  get flushing() {
+    return this._flushing;
+  }
+
+  set flushing(v) {
+    if (v) {
+      this.emit(EventType.DRAWING);
+    }
+    this._flushing = v;
+  }
 
   get canvas() {
     return this._canvas as WechatMiniprogram.Canvas;
@@ -42,11 +52,10 @@ export default class WXMLCanvas {
   get ctx() {
     return this._ctx as WechatMiniprogram.CanvasContext;
   }
+
   private listeners: IListeners = {
-    [EventType.READY]: new Set(),
-    [EventType.UPDATE]: new Set(),
-    [EventType.ERROR]: new Set(),
-    [EventType.FINISH]: new Set(),
+    [EventType.DRAWING]: new Set(),
+    [EventType.ABORTED]: new Set(),
   };
 
   readonly options: Required<IOptions> = new Proxy({} as Required<IOptions>, {
@@ -56,7 +65,6 @@ export default class WXMLCanvas {
     set: <T extends keyof IOptions>(_: any, key: T, value: IOptions[T]) => {
       if (this.options[key] !== value) {
         this._options[key] = value;
-        this.emit(EventType.UPDATE);
         return true;
       }
 
@@ -66,13 +74,10 @@ export default class WXMLCanvas {
 
   constructor(options: IOptions) {
     this._options = options;
-    this._init()
-      .then(() => this.emit(EventType.READY))
-      .catch(err => this.emit(EventType.ERROR, err));
   }
 
   private _init() {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       wx.createSelectorQuery()
         .select(this.options.canvas)
         .fields({ node: true, size: true })
@@ -80,38 +85,64 @@ export default class WXMLCanvas {
           if (!res?.[0]) {
             return reject(new Error('Canvas is not found.'));
           }
-
           this._canvas = res?.[0].node as WechatMiniprogram.Canvas;
           this._ctx = this._canvas.getContext('2d');
-          resolve(true);
+          resolve();
         });
-    });
-  }
-
-  draw() {
-    queryWXML(this.options.selectors, this.options.instanceContext)
+    })
+      .then(() =>
+        queryWXML(this.options.selectors, this.options.instanceContext)
+      )
       .then(normalizeWxmls)
       .then(res => {
         this._canvas!.width = res[0].metrics.width;
         this._canvas!.height = res[0].metrics.height;
-        return parse2els(res, this.ctx, this.canvas);
-      })
-      .then(els =>
-        draw(
-          els,
+        this._els = parse2els(res, this.ctx, this.canvas);
+      });
+  }
+
+  draw() {
+    this.flushing = true;
+    this.isAborted = false;
+    return this._init()
+      .then(() => {
+        if (this.isAborted) {
+          this.abortResolve();
+          throw new Error('Aborted');
+        }
+        return draw(
+          this._els,
           this.ctx as WechatMiniprogram.CanvasContext,
-          this.canvas as WechatMiniprogram.Canvas
-        )
-      )
-      .then(() => this.emit(EventType.FINISH))
-      .catch(err => this.emit(EventType.ERROR, err));
+          this.canvas as WechatMiniprogram.Canvas,
+          this
+        );
+      })
+      .then(() => (this.flushing = false));
+  }
+
+  redraw() {
+    return this.abort()
+      .then(() => this._init())
+      .then(() => this.draw());
+  }
+
+  abort() {
+    if (!this.flushing) {
+      this.ctx?.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      return Promise.resolve();
+    }
+    return new Promise<void>(resolve => {
+      this.isAborted = true;
+      this.abortResolve = () => {
+        this.emit(EventType.ABORTED);
+        this.ctx?.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.flushing = false;
+        resolve();
+      };
+    });
   }
 
   on(eventType: EventType, callback: () => void) {
-    if (eventType === EventType.READY && this.isReady) {
-      callback();
-    }
-
     this.listeners[eventType].add(callback);
   }
 
@@ -119,17 +150,7 @@ export default class WXMLCanvas {
     this.listeners[eventType].delete(callback);
   }
 
-  emit(eventType: EventType.ERROR, err: Error): void;
-  emit(eventType: EventType.UPDATE | EventType.READY | EventType.FINISH): void;
-  emit(eventType: EventType, ...rest: any[]): void {
-    switch (eventType) {
-      case EventType.ERROR:
-        this.listeners[eventType].forEach(callback => callback(rest[0]));
-        break;
-      case EventType.READY:
-        this.isReady = true;
-      default:
-        this.listeners[eventType].forEach(callback => callback());
-    }
+  private emit(eventType: EventType): void {
+    this.listeners[eventType].forEach(callback => callback());
   }
 }

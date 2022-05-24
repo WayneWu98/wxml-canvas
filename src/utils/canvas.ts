@@ -1,3 +1,4 @@
+import WXMLCanvas from 'src';
 import ImgMetrics from './img-metrics';
 
 function createRectPath(
@@ -411,12 +412,16 @@ const drawShadow = function (
 export const draw = (
   els: IElement[],
   ctx: WechatMiniprogram.CanvasContext,
-  canvas: WechatMiniprogram.Canvas
+  canvas: WechatMiniprogram.Canvas,
+  instance: WXMLCanvas
 ) => {
   let p: Promise<any> = Promise.resolve();
-
   els.forEach(el => {
     p = p.then(() => {
+      if (instance.isAborted) {
+        instance.abortResolve();
+        throw new Error('Aborted');
+      }
       if (el.metrics.width === 0 || el.metrics.height === 0) {
         // 元素没有尺寸就没必要绘制了，可能会存在特殊情况
         return Promise.resolve();

@@ -22,12 +22,16 @@ const wc = new WXMLCanvas({
   instanceContext: this,
 });
 
-wc.on('ready', () => {
-  wc.draw();
+wc.on('drawing', () => {
+  console.log('drawing');
 });
 
-wc.on('finish', () => {
-  console.log('finish');
+wc.on('aborted', () => {
+  console.log('aborted');
+});
+
+// 在节点挂载到页面后调用 draw 方法进行绘制
+wc.draw().then(() => {
   wx.canvasToTempFilePath(
     {
       canvas: wc.canvas,
@@ -38,9 +42,8 @@ wc.on('finish', () => {
   });
 });
 
-wc.on('error', err => {
-  console.error(err);
-});
+// 可以调用 abort 方法中断绘制操作，注意该操作会清空canvas上的内容，触发aborted事件
+// wc.abort();
 ```
 
 ## 最佳实践方式
@@ -61,22 +64,36 @@ Options:
 2. selectors: string[] - 需要查询的 WXML 选择器，例如 `['.billboard', '.name']`，选择器支持类型请参考微信官方文档，注意数组前面的选择器对应的 WXML 节点会被先画到 canvas 上，所以第一个节点决定了 canvas 的尺寸；
 3. instanceContext: object - 实例上下文，默认为`wx`，如果是在 component 里调用，请传递该参数（传递组件的`this`）。
 
+### WXMLCanvas.canvas: Canvas
+
+canvas 节点实例
+
+### WXMLCanvas.ctx: CanvasContext2D
+
+canvas 绘制上下文实例
+
 ### WXMLCanvas.on(eventType: EventType, callback: Function): void
 
 用来监听一些事件，EventType 有以下几种类型：
 
-1.  ready - 成功获取 canvas 和 context2d 实例后触发，你应该在这里开始调用`draw`方法进行绘制；
-2.  error - 抛出错误时触发，回调函数会接收到 Error 对象；
-3.  finish - 绘画完成（结束）时触发，这里你可以调用`wx.canvasToTempFilePath`得到临时路径；
-4.  update - 设置参数更新时触发，暂时还没有什么用，给后面的更新挖个坑。
+1.  drawing - 绘制中
+2.  aborted - 绘制操作被中断
 
 ### WXMLCanvas.off(eventType: EventType, callback: Function): void
 
 取消事件监听，EventType 参考上面的`on`方法。
 
-### WXMLCanvas.draw(): void
+### WXMLCanvas.draw(): Promise<void>
 
-开始绘制 canvas， 必须在`ready`事件触发后调用。
+开始绘制，必须在节点已经挂载后调用， 该方法返回 Promise。
+
+### WXMLCanvas.abort(): Promise<void>
+
+中断绘制操作，该操作会清空画布已有的内容。
+
+### WXMLCanvas.redraw(): Promise<void>
+
+该方法会自动调用 abort 和 draw 方法，同样必须在节点已经挂载后调用。
 
 ## 支持的类型
 
@@ -134,4 +151,4 @@ Options:
 
 1. 所有 border-radius 属性建议都传计算过的值，而不是简单的百分比，以免出现边界情况；
 2. WXMLCanvas 实例化操作以及调用`draw`方法，需要节点已经挂载之后；
-3. 目前画图任务的队列放在微任务中执行，暂时不支持中断绘制操作。
+3. ~~目前画图任务的队列放在微任务中执行，暂时不支持中断绘制操作。~~

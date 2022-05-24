@@ -5,19 +5,18 @@ const initialOptions = {
 };
 var EventType;
 (function (EventType) {
-    EventType["READY"] = "ready";
-    EventType["UPDATE"] = "update";
-    EventType["ERROR"] = "error";
-    EventType["FINISH"] = "finish";
+    EventType["DRAWING"] = "drawing";
+    EventType["ABORTED"] = "aborted";
 })(EventType || (EventType = {}));
 export default class WXMLCanvas {
     constructor(options) {
-        this.isReady = false;
+        this._els = [];
+        this.isAborted = false;
+        this._flushing = false;
+        this.abortResolve = () => Promise.resolve();
         this.listeners = {
-            [EventType.READY]: new Set(),
-            [EventType.UPDATE]: new Set(),
-            [EventType.ERROR]: new Set(),
-            [EventType.FINISH]: new Set(),
+            [EventType.DRAWING]: new Set(),
+            [EventType.ABORTED]: new Set(),
         };
         this.options = new Proxy({}, {
             get: (_, key) => {
@@ -27,16 +26,21 @@ export default class WXMLCanvas {
             set: (_, key, value) => {
                 if (this.options[key] !== value) {
                     this._options[key] = value;
-                    this.emit(EventType.UPDATE);
                     return true;
                 }
                 return false;
             },
         });
         this._options = options;
-        this._init()
-            .then(() => this.emit(EventType.READY))
-            .catch(err => this.emit(EventType.ERROR, err));
+    }
+    get flushing() {
+        return this._flushing;
+    }
+    set flushing(v) {
+        if (v) {
+            this.emit(EventType.DRAWING);
+        }
+        this._flushing = v;
     }
     get canvas() {
         return this._canvas;
@@ -55,40 +59,59 @@ export default class WXMLCanvas {
                 }
                 this._canvas = res === null || res === void 0 ? void 0 : res[0].node;
                 this._ctx = this._canvas.getContext('2d');
-                resolve(true);
+                resolve();
             });
-        });
-    }
-    draw() {
-        queryWXML(this.options.selectors, this.options.instanceContext)
+        })
+            .then(() => queryWXML(this.options.selectors, this.options.instanceContext))
             .then(normalizeWxmls)
             .then(res => {
             this._canvas.width = res[0].metrics.width;
             this._canvas.height = res[0].metrics.height;
-            return parse2els(res, this.ctx, this.canvas);
+            this._els = parse2els(res, this.ctx, this.canvas);
+        });
+    }
+    draw() {
+        this.flushing = true;
+        this.isAborted = false;
+        return this._init()
+            .then(() => {
+            if (this.isAborted) {
+                this.abortResolve();
+                throw new Error('Aborted');
+            }
+            return draw(this._els, this.ctx, this.canvas, this);
         })
-            .then(els => draw(els, this.ctx, this.canvas))
-            .then(() => this.emit(EventType.FINISH))
-            .catch(err => this.emit(EventType.ERROR, err));
+            .then(() => (this.flushing = false));
+    }
+    redraw() {
+        return this.abort()
+            .then(() => this._init())
+            .then(() => this.draw());
+    }
+    abort() {
+        var _a;
+        if (!this.flushing) {
+            (_a = this.ctx) === null || _a === void 0 ? void 0 : _a.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            return Promise.resolve();
+        }
+        return new Promise(resolve => {
+            this.isAborted = true;
+            this.abortResolve = () => {
+                var _a;
+                this.emit(EventType.ABORTED);
+                (_a = this.ctx) === null || _a === void 0 ? void 0 : _a.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.flushing = false;
+                resolve();
+            };
+        });
     }
     on(eventType, callback) {
-        if (eventType === EventType.READY && this.isReady) {
-            callback();
-        }
         this.listeners[eventType].add(callback);
     }
     off(eventType, callback) {
         this.listeners[eventType].delete(callback);
     }
-    emit(eventType, ...rest) {
-        switch (eventType) {
-            case EventType.ERROR:
-                this.listeners[eventType].forEach(callback => callback(rest[0]));
-                break;
-            case EventType.READY:
-                this.isReady = true;
-            default:
-                this.listeners[eventType].forEach(callback => callback());
-        }
+    emit(eventType) {
+        this.listeners[eventType].forEach(callback => callback());
     }
 }
