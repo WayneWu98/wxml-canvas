@@ -8,7 +8,7 @@
 
 ```javascript
 import WXMLCanvas from 'wxml-canvas';
-const classNames = [
+const selectors = [
   '.billboard',
   '.name',
   '.row',
@@ -18,7 +18,7 @@ const classNames = [
 ];
 const wc = new WXMLCanvas({
   canvas: '#canvas',
-  classNames,
+  selectors,
   instanceContext: this,
 });
 
