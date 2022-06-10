@@ -2,7 +2,9 @@ export const parseColor = function (rawColor, ctx, metrics) {
     if (rawColor.startsWith('linear-gradient') && metrics && ctx) {
         const splitted = rawColor
             .replace(/linear-gradient\((.*)\)$/, '$1')
-            .split(/\,\s(?=[(rgb)(#)])/)
+            .replace(/\,\srgb/g, '_rgb')
+            .replace(/\,\s\#/g, '_#')
+            .split('_')
             .map(s => s.trim());
         let x0 = metrics.width / 2;
         let y0 = metrics.height;
@@ -63,7 +65,7 @@ export const parseColor = function (rawColor, ctx, metrics) {
         }
         const gradient = ctx.createLinearGradient(x0, y0, x1, y1);
         splitted
-            .map(s => s.split(/\s(?=[^\s]+$)/))
+            .map(s => s.replace(/\s([^\s]+?)$/, '_$1').split('_'))
             .forEach(([color, position]) => {
             gradient.addColorStop(parseSize(position, refSize) / refSize, color);
         });
@@ -108,7 +110,10 @@ export const parseBorderWidth = function (borderWidth) {
     return parsed;
 };
 export const parseBorderColor = function (borderColor) {
-    const colors = borderColor.split(/\s(?=[(rgb)(#)])/);
+    const colors = borderColor
+        .replace(/\srgb/g, '_rgb')
+        .replace(/\s\#/, '_#')
+        .split('_');
     let color;
     if (colors.length === 1) {
         color = [colors[0], colors[0], colors[0], colors[0]];
@@ -161,7 +166,9 @@ export const parseTextOverflow2Endian = function (textOverflow) {
     return "clip";
 };
 export const parseShadow = function (boxShadow) {
-    const [color, offsetX, offsetY, blur] = boxShadow.split(/(?<=[^\,])\s/);
+    const splitted = boxShadow.split(/\s+/);
+    const color = splitted.slice(0, -4).join(', ');
+    const [offsetX, offsetY, blur] = splitted.slice(-4);
     return {
         color,
         offsetX: parseSize(offsetX),
