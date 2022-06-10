@@ -4,7 +4,7 @@
 
 ![https://resource.bearye.cn/29lY4Z_2022-05-19-19:53:59.png](https://resource.bearye.cn/29lY4Z_2022-05-19-19:53:59.png)
 
-## Quick Start
+## 快速开始
 
 ```javascript
 import WXMLCanvas from 'wxml-canvas';
@@ -150,8 +150,22 @@ canvas 绘制上下文实例
 > 2. 边框颜色 `border-color`
 > 3. 边框宽度 `border-width`
 
+## 参考样式CSS写法
+
+| 属性             | 参考写法                         |
+| ---------------- | -------------------------------- |
+| box-shadow       | 0px 1px 10px 0 rgba(0, 0, 0, .2) |
+| background-image | url('xxxxxx')                    |
+| border-radius    | 10px                             |
+
 ## 注意事项
 
 1. 所有 border-radius 属性建议都传计算过的值，而不是简单的百分比，以免出现边界情况；
 2. WXMLCanvas 实例化操作以及调用`draw`方法，需要节点已经挂载之后；
 3. ~~目前画图任务的队列放在微任务中执行，暂时不支持中断绘制操作。~~
+
+## 其他问题
+
+### 解决IOS端图片分辨率低问题
+
+可以画完图后设置 canvas css 上的宽高，然后通过`nextTick()`方法在下一队列中再调用`wx.canvasToTempFilePath()`进行转换成临时图片链接，同时调用参数`destWidth`和`destHeight`设置为canvas实际尺寸，可以通过`WXMLCanvas.canvas.width`和`WXMLCanvas.canvas.height`两个属性拿到值，具体参考例子中的**example1**。

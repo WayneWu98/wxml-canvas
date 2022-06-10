@@ -20,6 +20,22 @@ Component({
   methods: {
     log() {
       console.log(this.properties.src);
+    },
+    save() {
+      wx.saveImageToPhotosAlbum({
+        filePath: this.data.src,
+        success() {
+          wx.showToast({
+            title: '保存成功',
+          })
+        },
+        fail(err) {
+          console.error(err)
+          wx.showToast({
+            title: '保存失败',
+          })
+        }
+      })
     }
   }
 })

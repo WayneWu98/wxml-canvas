@@ -7,8 +7,8 @@ export const parseColor = function (
   if (rawColor.startsWith('linear-gradient') && metrics && ctx) {
     const splitted = rawColor
       .replace(/linear-gradient\((.*)\)$/, '$1')
-      .replace(/\,\srgb/g, '_rgb')
-      .replace(/\,\s\#/g, '_#')
+      .replace(/\,\s*rgb/g, '_rgb')
+      .replace(/\,\s*\#/g, '_#')
       .split('_')
       .map(s => s.trim());
     let x0 = metrics.width / 2;
@@ -118,7 +118,7 @@ export const parseBorderWidth = function (borderWidth: string) {
   } else if (ws.length === 2) {
     parsed = [ws[0], ws[1], ws[0], ws[1]];
   } else if (ws.length === 3) {
-    parsed = [ws[0], ws[1], ws[2], ws[0]];
+    parsed = [ws[0], ws[1], ws[2], ws[1]];
   } else {
     parsed = [ws[0], ws[1], ws[2], ws[3]];
   }
@@ -128,7 +128,7 @@ export const parseBorderWidth = function (borderWidth: string) {
 export const parseBorderColor = function (borderColor: string) {
   const colors = borderColor
     .replace(/\srgb/g, '_rgb')
-    .replace(/\s\#/, '_#')
+    .replace(/\s\#/g, '_#')
     .split('_');
   let color;
   if (colors.length === 1) {
@@ -136,7 +136,7 @@ export const parseBorderColor = function (borderColor: string) {
   } else if (colors.length === 2) {
     color = [colors[0], colors[1], colors[0], colors[1]];
   } else if (colors.length === 3) {
-    color = [colors[0], colors[1], colors[2], colors[0]];
+    color = [colors[0], colors[1], colors[2], colors[1]];
   } else {
     color = [colors[0], colors[1], colors[2], colors[3]];
   }
@@ -184,13 +184,21 @@ export const parseTextOverflow2Endian = function (textOverflow: string) {
 };
 
 export const parseShadow = function (boxShadow: string) {
-  const splitted = boxShadow.split(/\s+/);
-  const color = splitted.slice(0, -4).join(', ');
-  const [offsetX, offsetY, blur] = splitted.slice(-4);
+  let splitted;
+  if (boxShadow.includes('#')) {
+    splitted = boxShadow.split(/\s+/);
+  } else if (boxShadow.includes('rgb')) {
+    const dummy = boxShadow.split(/\)\s+/);
+    splitted = [dummy[0] + ')', ...dummy[1].split(/\s+/)];
+  } else {
+    splitted = ['rgba(0, 0, 0, 0)', '0', '0', '0'];
+  }
+  const [color, offsetX, offsetY, blur] = splitted;
+  console.log(boxShadow, [color, offsetX, offsetY, blur]);
   return {
     color,
-    offsetX: parseSize(offsetX),
-    offsetY: parseSize(offsetY),
-    blur: parseSize(blur),
+    offsetX: parseSize(offsetX ?? 0),
+    offsetY: parseSize(offsetY ?? 0),
+    blur: parseSize(blur ?? 0),
   };
 };

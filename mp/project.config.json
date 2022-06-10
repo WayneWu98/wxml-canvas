@@ -35,7 +35,7 @@
       "disablePlugins": [],
       "outputPath": ""
     },
-    "useIsolateContext": false,
+    "useIsolateContext": true,
     "userConfirmedBundleSwitch": false,
     "packNpmManually": false,
     "packNpmRelationList": [],
@@ -48,7 +48,7 @@
   },
   "compileType": "miniprogram",
   "libVersion": "2.24.2",
-  "appid": "wx832873da197070a3",
+  "appid": "wxb0645ca3f1e1b354",
   "projectname": "mp",
   "debugOptions": {
     "hidedInDevtools": []

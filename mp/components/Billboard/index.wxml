@@ -2,5 +2,6 @@
   <image class="img" src="{{ src }}" mode="widthFix" />
   <view class="footer-btn">
     <button type="primary" size="default" bindtap="log">打印图像URL</button>
+    <button type="primary" size="default" bindtap="save">保存到相册</button>
   </view>
 </view>

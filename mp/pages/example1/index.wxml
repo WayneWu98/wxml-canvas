@@ -10,4 +10,4 @@
   <image class="qr-code" src="https://resource.bearye.cn/qr-code_2022-05-20-20:59:32.png" mode="aspectFill"/>
 </view>
 <Billboard src="{{ src }}" />
-<canvas id="canvas" canvas-id="canvas" type="2d" />
+<canvas id="canvas" canvas-id="canvas" type="2d" style="width: {{ size.width }}px; height: {{ size.height }}px" />

@@ -9,30 +9,13 @@ var EventType;
     EventType["ABORTED"] = "aborted";
 })(EventType || (EventType = {}));
 export default class WXMLCanvas {
-    constructor(options) {
-        this._els = [];
-        this.isAborted = false;
-        this._flushing = false;
-        this.abortResolve = () => Promise.resolve();
-        this.listeners = {
-            [EventType.DRAWING]: new Set(),
-            [EventType.ABORTED]: new Set(),
-        };
-        this.options = new Proxy({}, {
-            get: (_, key) => {
-                var _a;
-                return (_a = this._options[key]) !== null && _a !== void 0 ? _a : initialOptions[key];
-            },
-            set: (_, key, value) => {
-                if (this.options[key] !== value) {
-                    this._options[key] = value;
-                    return true;
-                }
-                return false;
-            },
-        });
-        this._options = options;
-    }
+    _canvas;
+    _ctx;
+    _options;
+    _els = [];
+    isAborted = false;
+    _flushing = false;
+    abortResolve = () => Promise.resolve();
     get flushing() {
         return this._flushing;
     }
@@ -48,16 +31,35 @@ export default class WXMLCanvas {
     get ctx() {
         return this._ctx;
     }
+    listeners = {
+        [EventType.DRAWING]: new Set(),
+        [EventType.ABORTED]: new Set(),
+    };
+    options = new Proxy({}, {
+        get: (_, key) => {
+            return this._options[key] ?? initialOptions[key];
+        },
+        set: (_, key, value) => {
+            if (this.options[key] !== value) {
+                this._options[key] = value;
+                return true;
+            }
+            return false;
+        },
+    });
+    constructor(options) {
+        this._options = options;
+    }
     _init() {
         return new Promise((resolve, reject) => {
             wx.createSelectorQuery()
                 .select(this.options.canvas)
                 .fields({ node: true, size: true })
                 .exec(res => {
-                if (!(res === null || res === void 0 ? void 0 : res[0])) {
+                if (!res?.[0]) {
                     return reject(new Error('Canvas is not found.'));
                 }
-                this._canvas = res === null || res === void 0 ? void 0 : res[0].node;
+                this._canvas = res?.[0].node;
                 this._ctx = this._canvas.getContext('2d');
                 resolve();
             });
@@ -89,17 +91,15 @@ export default class WXMLCanvas {
             .then(() => this.draw());
     }
     abort() {
-        var _a;
         if (!this.flushing) {
-            (_a = this.ctx) === null || _a === void 0 ? void 0 : _a.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx?.clearRect(0, 0, this.canvas.width, this.canvas.height);
             return Promise.resolve();
         }
         return new Promise(resolve => {
             this.isAborted = true;
             this.abortResolve = () => {
-                var _a;
                 this.emit(EventType.ABORTED);
-                (_a = this.ctx) === null || _a === void 0 ? void 0 : _a.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx?.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 this.flushing = false;
                 resolve();
             };

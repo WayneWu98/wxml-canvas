@@ -26,13 +26,19 @@
   right: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-around;
   padding-top: 32rpx;
+  padding-left: 12rpx;
+  padding-right: 12rpx;
   padding-bottom: constant(safe-area-inset-bottom);
   padding-bottom: env(safe-area-inset-bottom);
   background-color: #fff;
   z-index: 9999;
   box-shadow: 0 -2rpx 25rpx 0 rgba(0, 0, 0, .05);
+}
+
+.footer-btn button {
+  width: calc(50% - 24rpx);
 }
 
 

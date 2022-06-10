@@ -1,8 +1,7 @@
 // pages/example1/index.js
-import WC from '../../wxml-canvas/index';
+import WXMLCanvas from '../../wxml-canvas/index';
 
 Page({
-
   /**
    * 页面的初始数据
    */
@@ -12,86 +11,64 @@ Page({
       ['入围组数', '690'],
       ['入围分', '0.93'],
       ['入围比', '1.3'],
-      ['社保系数', '2.1']
+      ['社保系数', '2.1'],
     ],
-    src: ''
-  },
-
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad: function (options) {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady: function () {
-
+    src: '',
+    size: { width: 0, height: 0 },
   },
 
   /**
    * 生命周期函数--监听页面显示
    */
-  onShow: function () {
-    const selectors = ['.billboard', '.name', '.row', '.left', '.right', '.qr-code']
-    const wc = new WC({
+  onReady: function () {
+    const selectors = [
+      '.billboard',
+      '.name',
+      '.row',
+      '.left',
+      '.right',
+      '.qr-code',
+    ];
+    const wc = new WXMLCanvas({
       canvas: '#canvas',
       selectors,
-      instanceContext: this
+      instanceContext: this,
     });
 
-    wc.on('drawing', () => {
-      console.log('drawing');
-    });
+    // wc.on('drawing', () => {
+    //   console.log('drawing');
+    // });
 
-    wc.on('aborted', () => {
-      console.log('aborted')
-    })
-
-    wc.draw().then(() => {
-      console.log('finish');
-      wx.canvasToTempFilePath({
-        canvas: wc.canvas,
-      }, this).then(res => {
-        this.setData({src: res.tempFilePath})
-      });
-    });
+    // wc.on('aborted', () => {
+    //   console.log('aborted');
+    // });
+    wc.draw()
+      .then(() => {
+        const { width, height } = wc.canvas;
+        console.log(width, height);
+        this.setData({
+          size: { width, height },
+        });
+        wx.nextTick(() => {
+          wx.canvasToTempFilePath(
+            {
+              canvas: wc.canvas,
+              width,
+              height,
+              destWidth: width,
+              destHeight: height,
+              quality: 1,
+            },
+            this
+          )
+            .then(res => {
+              this.setData({
+                src: res.tempFilePath,
+              });
+            })
+            .catch(console.log);
+        });
+      })
+      .catch(console.log);
   },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide: function () {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload: function () {
-
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh: function () {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom: function () {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage: function () {
-
-  }
-})
+});
