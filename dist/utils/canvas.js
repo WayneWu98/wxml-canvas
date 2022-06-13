@@ -30,7 +30,7 @@ function mesureText(ctx, text, font) {
 function clipRect(ctx, { metrics, radius }, outer = false, containerSize) {
     ctx.beginPath();
     createRectPath(ctx, metrics, radius);
-    if (outer && containerSize?.length) {
+    if (outer && (containerSize === null || containerSize === void 0 ? void 0 : containerSize.length)) {
         ctx.moveTo(0, 0);
         ctx.lineTo(0, containerSize[1]);
         ctx.lineTo(containerSize[0], containerSize[1]);
@@ -77,6 +77,7 @@ const drawColor = function ({ metrics, color, radius, opacity }, ctx) {
     return Promise.resolve();
 };
 const drawText = function (el, ctx) {
+    var _a, _b;
     const { metrics, text, lineHeight, textAlign, font, opacity, color, endian, shadow, } = el;
     const textArray = text.split('');
     ctx.save();
@@ -87,10 +88,10 @@ const drawText = function (el, ctx) {
     ctx.textAlign = textAlign;
     ctx.textBaseline = 'middle';
     const nLine = Math.round(metrics.height / lineHeight);
-    const textList = [textArray.shift() ?? ''];
+    const textList = [(_a = textArray.shift()) !== null && _a !== void 0 ? _a : ''];
     while (textArray.length) {
         const w = textArray.shift();
-        const str = textList?.[textList.length - 1] ?? '';
+        const str = (_b = textList === null || textList === void 0 ? void 0 : textList[textList.length - 1]) !== null && _b !== void 0 ? _b : '';
         if (textList.length >= nLine &&
             endian === "ellipsis" &&
             mesureText(ctx, str + w).width > metrics.width) {

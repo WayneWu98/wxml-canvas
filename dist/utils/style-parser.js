@@ -78,7 +78,7 @@ export const parseColor = function (rawColor, ctx, metrics) {
 };
 export const parseSize = function (size, refSize) {
     if (/%$/.test(size)) {
-        return (parseFloat(size) / 100) * (refSize ?? 1);
+        return (parseFloat(size) / 100) * (refSize !== null && refSize !== void 0 ? refSize : 1);
     }
     return parseFloat(size);
 };
@@ -181,8 +181,8 @@ export const parseShadow = function (boxShadow) {
     console.log(boxShadow, [color, offsetX, offsetY, blur]);
     return {
         color,
-        offsetX: parseSize(offsetX ?? 0),
-        offsetY: parseSize(offsetY ?? 0),
-        blur: parseSize(blur ?? 0),
+        offsetX: parseSize(offsetX !== null && offsetX !== void 0 ? offsetX : 0),
+        offsetY: parseSize(offsetY !== null && offsetY !== void 0 ? offsetY : 0),
+        blur: parseSize(blur !== null && blur !== void 0 ? blur : 0),
     };
 };
