@@ -95,8 +95,10 @@ export default class WXMLCanvas {
       )
       .then(normalizeWxmls)
       .then(res => {
-        this._canvas!.width = res[0].metrics.width;
-        this._canvas!.height = res[0].metrics.height;
+        const dpr = wx.getSystemInfoSync().pixelRatio;
+        this._canvas!.width = res[0].metrics.width * dpr;
+        this._canvas!.height = res[0].metrics.height * dpr;
+        this._ctx!.scale(dpr, dpr);
         this._els = parse2els(res, this.ctx, this.canvas);
       });
   }
