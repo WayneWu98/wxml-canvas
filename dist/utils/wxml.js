@@ -16,6 +16,8 @@ const computedStyle = [
     'textOverflow',
     'lineHeight',
     'fontSize',
+    'fontWeight',
+    'fontFamily'
 ];
 export const queryWXML = function (selectors = [], instanceContext) {
     return Promise.all(selectors.map(selector => {
@@ -166,7 +168,7 @@ const createTextEl = function (wxml) {
         metrics,
         text: wxml.text,
         color: wxml.style.color,
-        font: wxml.style.font,
+        font: `${wxml.style.fontWeight} ${parseSize(wxml.style.fontSize)}px ${wxml.style.fontFamily}`,
         endian: parseTextOverflow2Endian(wxml.style.textOverflow),
         textAlign: wxml.style.textAlign,
         maxLines,

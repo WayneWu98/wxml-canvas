@@ -221,6 +221,7 @@ const drawText = function (
     top += lineHeight;
   });
   ctx.restore();
+  return Promise.resolve();
 };
 
 const drawImage = function (
@@ -412,6 +413,7 @@ const drawShadow = function (
   ctx.closePath();
   ctx.fill();
   ctx.restore();
+  return Promise.resolve();
 };
 
 const drawInAndroid = (
@@ -452,7 +454,6 @@ const drawInAndroid = (
   return p;
 };
 
-
 // maybe the bottom is ugly code, but vx-mp official do is a GABAGE
 const drawInIOS = async (
   els: IElement[],
@@ -460,33 +461,45 @@ const drawInIOS = async (
   canvas: WechatMiniprogram.Canvas,
   instance: WXMLCanvas
 ) => {
-  for (const el of els) {
-    if (instance.isAborted) {
-      instance.abortResolve();
-      throw new Error('Aborted');
-    }
-    switch (el.type) {
-      case ELEMENT_TYPE.COLOR:
-        await drawColor(el as IColorElement, ctx);
-        break;
-      case ELEMENT_TYPE.IMAGE:
-        await drawImage(el as IImageElement, ctx, canvas);
-        break;
-      case ELEMENT_TYPE.BORDER:
-        await drawBorder(el as IBorderElement, ctx);
-        break;
-      case ELEMENT_TYPE.SHADOW:
-        await drawShadow(el as IShadowElement, ctx, [
-          canvas.width,
-          canvas.height,
-        ]);
-        break;
-      case ELEMENT_TYPE.TEXT:
-        await drawText(el as ITextElement, ctx);
-        break;
-    }
-    await new Promise(r => setTimeout(r, 100));
-  }
+  let p: Promise<any> = Promise.resolve();
+  els.forEach(el => {
+    p = p.then((): Promise<void> => {
+      if (instance.isAborted) {
+        instance.abortResolve();
+        throw new Error('Aborted');
+      }
+      if (el.metrics.width === 0 || el.metrics.height === 0) {
+        // 元素没有尺寸就没必要绘制了，可能会存在特殊情况
+        return Promise.resolve();
+      }
+      let dummyPromise: Promise<void> = Promise.resolve();
+      switch (el.type) {
+        case ELEMENT_TYPE.COLOR:
+          dummyPromise = drawColor(el as IColorElement, ctx);
+          break;
+        case ELEMENT_TYPE.IMAGE:
+          dummyPromise = drawImage(el as IImageElement, ctx, canvas);
+          break;
+        case ELEMENT_TYPE.BORDER:
+          dummyPromise = drawBorder(el as IBorderElement, ctx);
+          break;
+        case ELEMENT_TYPE.SHADOW:
+          dummyPromise = drawShadow(el as IShadowElement, ctx, [
+            canvas.width,
+            canvas.height,
+          ]);
+          break;
+        case ELEMENT_TYPE.TEXT:
+          dummyPromise = drawText(el as ITextElement, ctx);
+          break;
+      }
+      return dummyPromise.then(() => {
+        return new Promise(r => setTimeout(() => r(), 100));
+      });
+    });
+  });
+
+  return p;
 };
 
 export const draw = (

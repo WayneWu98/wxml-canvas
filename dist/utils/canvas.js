@@ -144,6 +144,7 @@ const drawText = function (el, ctx) {
         top += lineHeight;
     });
     ctx.restore();
+    return Promise.resolve();
 };
 const drawImage = function (el, ctx, canvas) {
     return new Promise((resolve, reject) => {
@@ -280,6 +281,7 @@ const drawShadow = function (el, ctx, containerSize) {
     ctx.closePath();
     ctx.fill();
     ctx.restore();
+    return Promise.resolve();
 };
 const drawInAndroid = (els, ctx, canvas, instance) => {
     let p = Promise.resolve();
@@ -312,33 +314,43 @@ const drawInAndroid = (els, ctx, canvas, instance) => {
     return p;
 };
 const drawInIOS = (els, ctx, canvas, instance) => __awaiter(void 0, void 0, void 0, function* () {
-    for (const el of els) {
-        if (instance.isAborted) {
-            instance.abortResolve();
-            throw new Error('Aborted');
-        }
-        switch (el.type) {
-            case "color":
-                yield drawColor(el, ctx);
-                break;
-            case "image":
-                yield drawImage(el, ctx, canvas);
-                break;
-            case "border":
-                yield drawBorder(el, ctx);
-                break;
-            case "shadow":
-                yield drawShadow(el, ctx, [
-                    canvas.width,
-                    canvas.height,
-                ]);
-                break;
-            case "text":
-                yield drawText(el, ctx);
-                break;
-        }
-        yield new Promise(r => setTimeout(r, 100));
-    }
+    let p = Promise.resolve();
+    els.forEach(el => {
+        p = p.then(() => {
+            if (instance.isAborted) {
+                instance.abortResolve();
+                throw new Error('Aborted');
+            }
+            if (el.metrics.width === 0 || el.metrics.height === 0) {
+                return Promise.resolve();
+            }
+            let dummyPromise = Promise.resolve();
+            switch (el.type) {
+                case "color":
+                    dummyPromise = drawColor(el, ctx);
+                    break;
+                case "image":
+                    dummyPromise = drawImage(el, ctx, canvas);
+                    break;
+                case "border":
+                    dummyPromise = drawBorder(el, ctx);
+                    break;
+                case "shadow":
+                    dummyPromise = drawShadow(el, ctx, [
+                        canvas.width,
+                        canvas.height,
+                    ]);
+                    break;
+                case "text":
+                    dummyPromise = drawText(el, ctx);
+                    break;
+            }
+            return dummyPromise.then(() => {
+                return new Promise(r => setTimeout(() => r(), 100));
+            });
+        });
+    });
+    return p;
 });
 export const draw = (els, ctx, canvas, instance) => {
     if (!isIOS) {

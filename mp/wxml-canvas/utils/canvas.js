@@ -1,4 +1,14 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import ImgMetrics from './img-metrics';
+const isIOS = wx.getSystemInfoSync().system.toLowerCase().indexOf('iOS') > -1;
 function createRectPath(ctx, metrics, radius = 0) {
     const { left, top, right, bottom, width, height } = metrics;
     if (radius) {
@@ -30,7 +40,7 @@ function mesureText(ctx, text, font) {
 function clipRect(ctx, { metrics, radius }, outer = false, containerSize) {
     ctx.beginPath();
     createRectPath(ctx, metrics, radius);
-    if (outer && containerSize?.length) {
+    if (outer && (containerSize === null || containerSize === void 0 ? void 0 : containerSize.length)) {
         ctx.moveTo(0, 0);
         ctx.lineTo(0, containerSize[1]);
         ctx.lineTo(containerSize[0], containerSize[1]);
@@ -77,20 +87,24 @@ const drawColor = function ({ metrics, color, radius, opacity }, ctx) {
     return Promise.resolve();
 };
 const drawText = function (el, ctx) {
+    var _a, _b;
     const { metrics, text, lineHeight, textAlign, font, opacity, color, endian, shadow, } = el;
     const textArray = text.split('');
     ctx.save();
-    clipRect(ctx, { metrics });
+    metrics.width += 4;
+    clipRect(ctx, {
+        metrics: Object.assign(Object.assign({}, metrics), { top: 0, height: metrics.height + metrics.top }),
+    });
     ctx.globalAlpha = opacity;
     ctx.font = font;
     ctx.fillStyle = color;
     ctx.textAlign = textAlign;
     ctx.textBaseline = 'middle';
     const nLine = Math.round(metrics.height / lineHeight);
-    const textList = [textArray.shift() ?? ''];
+    const textList = [(_a = textArray.shift()) !== null && _a !== void 0 ? _a : ''];
     while (textArray.length) {
         const w = textArray.shift();
-        const str = textList?.[textList.length - 1] ?? '';
+        const str = (_b = textList === null || textList === void 0 ? void 0 : textList[textList.length - 1]) !== null && _b !== void 0 ? _b : '';
         if (textList.length >= nLine &&
             endian === "ellipsis" &&
             mesureText(ctx, str + w).width > metrics.width) {
@@ -130,6 +144,7 @@ const drawText = function (el, ctx) {
         top += lineHeight;
     });
     ctx.restore();
+    return Promise.resolve();
 };
 const drawImage = function (el, ctx, canvas) {
     return new Promise((resolve, reject) => {
@@ -266,8 +281,9 @@ const drawShadow = function (el, ctx, containerSize) {
     ctx.closePath();
     ctx.fill();
     ctx.restore();
+    return Promise.resolve();
 };
-export const draw = (els, ctx, canvas, instance) => {
+const drawInAndroid = (els, ctx, canvas, instance) => {
     let p = Promise.resolve();
     els.forEach(el => {
         p = p.then(() => {
@@ -296,4 +312,49 @@ export const draw = (els, ctx, canvas, instance) => {
         });
     });
     return p;
+};
+const drawInIOS = (els, ctx, canvas, instance) => __awaiter(void 0, void 0, void 0, function* () {
+    let p = Promise.resolve();
+    els.forEach(el => {
+        p = p.then(() => {
+            if (instance.isAborted) {
+                instance.abortResolve();
+                throw new Error('Aborted');
+            }
+            if (el.metrics.width === 0 || el.metrics.height === 0) {
+                return Promise.resolve();
+            }
+            let dummyPromise = Promise.resolve();
+            switch (el.type) {
+                case "color":
+                    dummyPromise = drawColor(el, ctx);
+                    break;
+                case "image":
+                    dummyPromise = drawImage(el, ctx, canvas);
+                    break;
+                case "border":
+                    dummyPromise = drawBorder(el, ctx);
+                    break;
+                case "shadow":
+                    dummyPromise = drawShadow(el, ctx, [
+                        canvas.width,
+                        canvas.height,
+                    ]);
+                    break;
+                case "text":
+                    dummyPromise = drawText(el, ctx);
+                    break;
+            }
+            return dummyPromise.then(() => {
+                return new Promise(r => setTimeout(() => r(), 100));
+            });
+        });
+    });
+    return p;
+});
+export const draw = (els, ctx, canvas, instance) => {
+    if (!isIOS) {
+        return drawInAndroid(els, ctx, canvas, instance);
+    }
+    return drawInIOS(els, ctx, canvas, instance);
 };

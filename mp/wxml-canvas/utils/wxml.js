@@ -16,11 +16,13 @@ const computedStyle = [
     'textOverflow',
     'lineHeight',
     'fontSize',
+    'fontWeight',
+    'fontFamily'
 ];
 export const queryWXML = function (selectors = [], instanceContext) {
     return Promise.all(selectors.map(selector => {
         return new Promise(resolve => {
-            (instanceContext ?? wx)
+            (instanceContext !== null && instanceContext !== void 0 ? instanceContext : wx)
                 .createSelectorQuery()
                 .selectAll(selector)
                 .fields({
@@ -42,12 +44,12 @@ export const normalizeWxmls = function (wxmls) {
     const result = [];
     const wrapper = wxmls.shift();
     const refMetrics = {
-        left: wrapper?.left,
-        top: wrapper?.top,
-        right: wrapper?.right,
-        bottom: wrapper?.bottom,
-        width: wrapper?.width,
-        height: wrapper?.height,
+        left: wrapper === null || wrapper === void 0 ? void 0 : wrapper.left,
+        top: wrapper === null || wrapper === void 0 ? void 0 : wrapper.top,
+        right: wrapper === null || wrapper === void 0 ? void 0 : wrapper.right,
+        bottom: wrapper === null || wrapper === void 0 ? void 0 : wrapper.bottom,
+        width: wrapper === null || wrapper === void 0 ? void 0 : wrapper.width,
+        height: wrapper === null || wrapper === void 0 ? void 0 : wrapper.height,
     };
     const normalizedWrapper = constructWXML(wrapper);
     result.push(normalizedWrapper);
@@ -67,6 +69,7 @@ export const computeMetrcs = (wxml, refMetrics) => {
     };
 };
 const constructWXML = (wxml, refMetrics = wxml) => {
+    var _a;
     if (wxml.backgroundImage && /^url\(.*\)$/.test(wxml.backgroundImage)) {
         wxml.src = wxml.backgroundImage.replace(/^url\("?(.*?)"?\)$/, '$1');
         wxml.backgroundImage = '';
@@ -74,14 +77,7 @@ const constructWXML = (wxml, refMetrics = wxml) => {
     }
     const style = {};
     computedStyle.forEach(key => (style[key] = wxml[key]));
-    return {
-        ...wxml,
-        text: wxml.dataset?.text,
-        src: wxml.src,
-        mode: wxml.mode,
-        metrics: computeMetrcs(wxml, refMetrics),
-        style: style,
-    };
+    return Object.assign(Object.assign({}, wxml), { text: (_a = wxml.dataset) === null || _a === void 0 ? void 0 : _a.text, src: wxml.src, mode: wxml.mode, metrics: computeMetrcs(wxml, refMetrics), style: style });
 };
 export const parse2els = function (wxmls, ctx, canvas) {
     const els = [];
@@ -131,13 +127,7 @@ const createImageEl = function (wxml) {
 };
 const createBorderEl = function (wxml) {
     const width = parseBorderWidth(wxml.style.borderWidth);
-    const metrics = {
-        ...wxml.metrics,
-        left: wxml.metrics.left + Math.floor(width[3] / 2),
-        top: wxml.metrics.top + Math.floor(width[0] / 2),
-        right: wxml.metrics.right - Math.floor(width[1] / 2),
-        bottom: wxml.metrics.bottom - Math.floor(width[2] / 2),
-    };
+    const metrics = Object.assign(Object.assign({}, wxml.metrics), { left: wxml.metrics.left + Math.floor(width[3] / 2), top: wxml.metrics.top + Math.floor(width[0] / 2), right: wxml.metrics.right - Math.floor(width[1] / 2), bottom: wxml.metrics.bottom - Math.floor(width[2] / 2) });
     return {
         type: "border",
         metrics,
@@ -178,7 +168,7 @@ const createTextEl = function (wxml) {
         metrics,
         text: wxml.text,
         color: wxml.style.color,
-        font: wxml.style.font,
+        font: `${wxml.style.fontWeight} ${parseSize(wxml.style.fontSize)}px ${wxml.style.fontFamily}`,
         endian: parseTextOverflow2Endian(wxml.style.textOverflow),
         textAlign: wxml.style.textAlign,
         maxLines,

@@ -28,6 +28,8 @@ const computedStyle: StyleName[] = [
   'textOverflow',
   'lineHeight',
   'fontSize',
+  'fontWeight',
+  'fontFamily'
 ];
 
 export type IPureWXML = Metrics & {
@@ -241,7 +243,7 @@ const createTextEl = function (wxml: INormalizedWXML): ITextElement {
     metrics,
     text: wxml.text!,
     color: wxml.style.color,
-    font: wxml.style.font,
+    font: `${wxml.style.fontWeight} ${parseSize(wxml.style.fontSize)}px ${wxml.style.fontFamily}`,
     endian: parseTextOverflow2Endian(wxml.style.textOverflow),
     textAlign: wxml.style.textAlign,
     maxLines,

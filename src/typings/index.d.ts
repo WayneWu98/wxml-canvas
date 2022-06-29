@@ -67,6 +67,8 @@ interface Style {
   lineHeight: string;
   textAlign: string;
   textShadow: string;
+  fontWeight: string;
+  fontFamily: string;
 }
 
 type StyleName = keyof Style;
