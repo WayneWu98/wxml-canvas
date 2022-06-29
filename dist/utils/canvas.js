@@ -1,4 +1,14 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import ImgMetrics from './img-metrics';
+const isIOS = wx.getSystemInfoSync().system.toLowerCase().indexOf('iOS') > -1;
 function createRectPath(ctx, metrics, radius = 0) {
     const { left, top, right, bottom, width, height } = metrics;
     if (radius) {
@@ -82,7 +92,9 @@ const drawText = function (el, ctx) {
     const textArray = text.split('');
     ctx.save();
     metrics.width += 4;
-    clipRect(ctx, { metrics: Object.assign(Object.assign({}, metrics), { top: 0, height: metrics.height + metrics.top }) });
+    clipRect(ctx, {
+        metrics: Object.assign(Object.assign({}, metrics), { top: 0, height: metrics.height + metrics.top }),
+    });
     ctx.globalAlpha = opacity;
     ctx.font = font;
     ctx.fillStyle = color;
@@ -269,7 +281,7 @@ const drawShadow = function (el, ctx, containerSize) {
     ctx.fill();
     ctx.restore();
 };
-export const draw = (els, ctx, canvas, instance) => {
+const drawInAndroid = (els, ctx, canvas, instance) => {
     let p = Promise.resolve();
     els.forEach(el => {
         p = p.then(() => {
@@ -298,4 +310,34 @@ export const draw = (els, ctx, canvas, instance) => {
         });
     });
     return p;
+};
+const drawInIOS = (els, ctx, canvas, instance) => __awaiter(void 0, void 0, void 0, function* () {
+    for (const el of els) {
+        if (instance.isAborted) {
+            instance.abortResolve();
+            throw new Error('Aborted');
+        }
+        switch (el.type) {
+            case "color":
+                yield drawColor(el, ctx);
+            case "image":
+                yield drawImage(el, ctx, canvas);
+            case "border":
+                yield drawBorder(el, ctx);
+            case "shadow":
+                yield drawShadow(el, ctx, [
+                    canvas.width,
+                    canvas.height,
+                ]);
+            case "text":
+                yield drawText(el, ctx);
+        }
+        yield new Promise(r => setTimeout(r, 100));
+    }
+});
+export const draw = (els, ctx, canvas, instance) => {
+    if (!isIOS) {
+        return drawInAndroid(els, ctx, canvas, instance);
+    }
+    return drawInIOS(els, ctx, canvas, instance);
 };

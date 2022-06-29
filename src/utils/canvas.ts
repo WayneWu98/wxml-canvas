@@ -1,6 +1,8 @@
 import WXMLCanvas from 'src';
 import ImgMetrics from './img-metrics';
 
+const isIOS = wx.getSystemInfoSync().system.toLowerCase().indexOf('iOS') > -1;
+
 function createRectPath(
   ctx: WechatMiniprogram.CanvasContext,
   metrics: Metrics,
@@ -161,7 +163,9 @@ const drawText = function (
   const textArray = text.split('');
   ctx.save();
   metrics.width += 4;
-  clipRect(ctx, { metrics: { ...metrics, top: 0, height: metrics.height + metrics.top }});
+  clipRect(ctx, {
+    metrics: { ...metrics, top: 0, height: metrics.height + metrics.top },
+  });
   ctx.globalAlpha = opacity;
   ctx.font = font;
   ctx.fillStyle = color;
@@ -410,7 +414,7 @@ const drawShadow = function (
   ctx.restore();
 };
 
-export const draw = (
+const drawInAndroid = (
   els: IElement[],
   ctx: WechatMiniprogram.CanvasContext,
   canvas: WechatMiniprogram.Canvas,
@@ -446,4 +450,46 @@ export const draw = (
   });
 
   return p;
+};
+
+const drawInIOS = async (
+  els: IElement[],
+  ctx: WechatMiniprogram.CanvasContext,
+  canvas: WechatMiniprogram.Canvas,
+  instance: WXMLCanvas
+) => {
+  for (const el of els) {
+    if (instance.isAborted) {
+      instance.abortResolve();
+      throw new Error('Aborted');
+    }
+    switch (el.type) {
+      case ELEMENT_TYPE.COLOR:
+        await drawColor(el as IColorElement, ctx);
+      case ELEMENT_TYPE.IMAGE:
+        await drawImage(el as IImageElement, ctx, canvas);
+      case ELEMENT_TYPE.BORDER:
+        await drawBorder(el as IBorderElement, ctx);
+      case ELEMENT_TYPE.SHADOW:
+        await drawShadow(el as IShadowElement, ctx, [
+          canvas.width,
+          canvas.height,
+        ]);
+      case ELEMENT_TYPE.TEXT:
+        await drawText(el as ITextElement, ctx);
+    }
+    await new Promise(r => setTimeout(r, 100));
+  }
+};
+
+export const draw = (
+  els: IElement[],
+  ctx: WechatMiniprogram.CanvasContext,
+  canvas: WechatMiniprogram.Canvas,
+  instance: WXMLCanvas
+) => {
+  if (!isIOS) {
+    return drawInAndroid(els, ctx, canvas, instance);
+  }
+  return drawInIOS(els, ctx, canvas, instance);
 };
