@@ -452,6 +452,8 @@ const drawInAndroid = (
   return p;
 };
 
+
+// maybe the bottom is ugly code, but vx-mp official do is a GABAGE
 const drawInIOS = async (
   els: IElement[],
   ctx: WechatMiniprogram.CanvasContext,
@@ -466,17 +468,22 @@ const drawInIOS = async (
     switch (el.type) {
       case ELEMENT_TYPE.COLOR:
         await drawColor(el as IColorElement, ctx);
+        break;
       case ELEMENT_TYPE.IMAGE:
         await drawImage(el as IImageElement, ctx, canvas);
+        break;
       case ELEMENT_TYPE.BORDER:
         await drawBorder(el as IBorderElement, ctx);
+        break;
       case ELEMENT_TYPE.SHADOW:
         await drawShadow(el as IShadowElement, ctx, [
           canvas.width,
           canvas.height,
         ]);
+        break;
       case ELEMENT_TYPE.TEXT:
         await drawText(el as ITextElement, ctx);
+        break;
     }
     await new Promise(r => setTimeout(r, 100));
   }

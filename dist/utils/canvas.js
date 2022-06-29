@@ -320,17 +320,22 @@ const drawInIOS = (els, ctx, canvas, instance) => __awaiter(void 0, void 0, void
         switch (el.type) {
             case "color":
                 yield drawColor(el, ctx);
+                break;
             case "image":
                 yield drawImage(el, ctx, canvas);
+                break;
             case "border":
                 yield drawBorder(el, ctx);
+                break;
             case "shadow":
                 yield drawShadow(el, ctx, [
                     canvas.width,
                     canvas.height,
                 ]);
+                break;
             case "text":
                 yield drawText(el, ctx);
+                break;
         }
         yield new Promise(r => setTimeout(r, 100));
     }
