@@ -91,7 +91,6 @@ const drawText = function (el, ctx) {
     const { metrics, text, lineHeight, textAlign, font, opacity, color, endian, shadow, } = el;
     const textArray = text.split('');
     ctx.save();
-    metrics.width += 4;
     clipRect(ctx, {
         metrics: Object.assign(Object.assign({}, metrics), { top: 0, height: metrics.height + metrics.top }),
     });
