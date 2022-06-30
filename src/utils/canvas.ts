@@ -162,7 +162,6 @@ const drawText = function (
   } = el;
   const textArray = text.split('');
   ctx.save();
-  metrics.width += 4;
   clipRect(ctx, {
     metrics: { ...metrics, top: 0, height: metrics.height + metrics.top },
   });
