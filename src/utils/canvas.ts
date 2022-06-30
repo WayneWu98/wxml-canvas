@@ -454,7 +454,7 @@ const drawInAndroid = (
 };
 
 // maybe the bottom is ugly code, but vx-mp official do is a GABAGE
-const drawInIOS = async (
+const drawInIOS = (
   els: IElement[],
   ctx: WechatMiniprogram.CanvasContext,
   canvas: WechatMiniprogram.Canvas,

@@ -1,12 +1,3 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 import ImgMetrics from './img-metrics';
 const isIOS = wx.getSystemInfoSync().system.toLowerCase().indexOf('iOS') > -1;
 function createRectPath(ctx, metrics, radius = 0) {
@@ -312,7 +303,7 @@ const drawInAndroid = (els, ctx, canvas, instance) => {
     });
     return p;
 };
-const drawInIOS = (els, ctx, canvas, instance) => __awaiter(void 0, void 0, void 0, function* () {
+const drawInIOS = (els, ctx, canvas, instance) => {
     let p = Promise.resolve();
     els.forEach(el => {
         p = p.then(() => {
@@ -350,7 +341,7 @@ const drawInIOS = (els, ctx, canvas, instance) => __awaiter(void 0, void 0, void
         });
     });
     return p;
-});
+};
 export const draw = (els, ctx, canvas, instance) => {
     if (!isIOS) {
         return drawInAndroid(els, ctx, canvas, instance);
