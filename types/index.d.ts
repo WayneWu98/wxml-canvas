@@ -22,6 +22,10 @@ export default class WXMLCanvas {
     set flushing(v: boolean);
     get canvas(): WechatMiniprogram.Canvas;
     get ctx(): WechatMiniprogram.CanvasContext;
+    getFittedSize(limit?: number): {
+        width: number;
+        height: number;
+    };
     private listeners;
     readonly options: Required<IOptions>;
     constructor(options: IOptions);
@@ -32,5 +36,12 @@ export default class WXMLCanvas {
     on(eventType: EventType, callback: () => void): void;
     off(eventType: EventType, callback: () => void): void;
     private emit;
+    static getFittedSize({ width, height }: {
+        width: number;
+        height: number;
+    }, limit?: number): {
+        width: number;
+        height: number;
+    };
 }
 export {};

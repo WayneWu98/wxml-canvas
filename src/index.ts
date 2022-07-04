@@ -4,7 +4,7 @@ interface IOptions {
   canvas: string;
   selectors: string[];
   instanceContext?: InstanceContext;
-  interval: number
+  interval: number;
 }
 
 type InitialOptions = Required<{
@@ -14,7 +14,7 @@ type InitialOptions = Required<{
 const initialOptions: InitialOptions = {
   instanceContext: wx,
   selectors: [],
-  interval: 0
+  interval: 0,
 };
 
 enum EventType {
@@ -53,6 +53,10 @@ export default class WXMLCanvas {
 
   get ctx() {
     return this._ctx as WechatMiniprogram.CanvasContext;
+  }
+
+  getFittedSize(limit = 1334) {
+    return WXMLCanvas.getFittedSizeFromCanvas(this.canvas, limit);
   }
 
   private listeners: IListeners = {
@@ -156,5 +160,24 @@ export default class WXMLCanvas {
 
   private emit(eventType: EventType): void {
     this.listeners[eventType].forEach(callback => callback());
+  }
+
+  static getFittedSizeFromCanvas(
+    { width, height }: WechatMiniprogram.Canvas,
+    limit = 1334
+  ) {
+    if (Math.max(width, height) <= limit) {
+      return { width, height };
+    }
+    if (width > height) {
+      return {
+        width: limit,
+        height: (height / width) * limit,
+      };
+    }
+    return {
+      width: (width / height) * limit,
+      height: limit,
+    };
   }
 }

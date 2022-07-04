@@ -63,7 +63,7 @@ Options:
 1. canvas: string - canvas 选择器，例如 "#canvas"；
 2. selectors: string[] - 需要查询的 WXML 选择器，例如 `['.billboard', '.name']`，选择器支持类型请参考微信官方文档，注意数组前面的选择器对应的 WXML 节点会被先画到 canvas 上，所以第一个节点决定了 canvas 的尺寸；
 3. instanceContext: object - 实例上下文，默认为`wx`，如果是在 component 里调用，请传递该参数（传递组件的`this`）；
-4. interval: number - 绘制每个元素的时间间隔（目前小程序的Canvas Context2D还不是十分稳定，频繁的绘制操作可能会导致绘制不全，可以通过设置这个参数来控制绘制时间间隔，毫秒数，默认为0）。
+4. interval: number - 绘制每个元素的时间间隔（目前小程序的 Canvas Context2D 还不是十分稳定，频繁的绘制操作可能会导致绘制不全，可以通过设置这个参数来控制绘制时间间隔，毫秒数，默认为 0）。
 
 ### WXMLCanvas.canvas: Canvas
 
@@ -72,6 +72,16 @@ canvas 节点实例
 ### WXMLCanvas.ctx: CanvasContext2D
 
 canvas 绘制上下文实例
+
+## WXMLCanvas.getFittedSize(limit: number = 1334): { width: number, height: number }
+
+获取限制尺寸缩放后的尺寸，将其设置为 canvas 节点的 css 大小，以避免将 canvas 转换为临时资源链接时失败的情况。该函数会调用 WXMLCanvas 的静态方法 `getFittedSizeFromCanvas()`。
+
+> canvas 节点尺寸过大时，可能会出现这种情况：使`wx.canvasToTempFilePath()`接口无法正常将 canvas 转换为临时资源链接，出来的结果图片是空白的。
+
+## static WXMLCanvas.getFittedSizeFromCanvas(canvas: Canvas, limit: number = 1334): { width: number, height: number }
+
+静态方法，从 canvas 实例上获取合适的 canvas 节点 css 尺寸。
 
 ### WXMLCanvas.on(eventType: EventType, callback: Function): void
 
@@ -151,7 +161,7 @@ canvas 绘制上下文实例
 > 2. 边框颜色 `border-color`
 > 3. 边框宽度 `border-width`
 
-## 参考样式CSS写法
+## 参考样式 CSS 写法
 
 | 属性             | 参考写法                         |
 | ---------------- | -------------------------------- |
@@ -167,6 +177,6 @@ canvas 绘制上下文实例
 
 ## 其他问题
 
-### 解决IOS端图片分辨率低问题
+### 解决 IOS 端图片分辨率低问题
 
-可以画完图后设置 canvas css 上的宽高，然后通过`nextTick()`方法在下一队列中再调用`wx.canvasToTempFilePath()`进行转换成临时图片链接，同时调用参数`destWidth`和`destHeight`设置为canvas实际尺寸，可以通过`WXMLCanvas.canvas.width`和`WXMLCanvas.canvas.height`两个属性拿到值，具体参考例子中的**example1**。
+可以画完图后设置 canvas css 上的宽高，然后通过`nextTick()`方法在下一队列中再调用`wx.canvasToTempFilePath()`进行转换成临时图片链接，同时调用参数`destWidth`和`destHeight`设置为 canvas 实际尺寸，可以通过`WXMLCanvas.canvas.width`和`WXMLCanvas.canvas.height`两个属性拿到值，具体参考例子中的**example1**。

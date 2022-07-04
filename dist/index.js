@@ -2,7 +2,7 @@ import { queryWXML, normalizeWxmls, parse2els, draw } from './utils/index';
 const initialOptions = {
     instanceContext: wx,
     selectors: [],
-    interval: 0
+    interval: 0,
 };
 var EventType;
 (function (EventType) {
@@ -48,6 +48,9 @@ export default class WXMLCanvas {
     }
     get ctx() {
         return this._ctx;
+    }
+    getFittedSize(limit = 1334) {
+        return WXMLCanvas.getFittedSize({ width: this.canvas.width, height: this.canvas.height }, limit);
     }
     _init() {
         return new Promise((resolve, reject) => {
@@ -116,5 +119,20 @@ export default class WXMLCanvas {
     }
     emit(eventType) {
         this.listeners[eventType].forEach(callback => callback());
+    }
+    static getFittedSize({ width, height }, limit = 1334) {
+        if (Math.max(width, height) <= limit) {
+            return { width, height };
+        }
+        if (width > height) {
+            return {
+                width: limit,
+                height: (height / width) * limit,
+            };
+        }
+        return {
+            width: (width / height) * limit,
+            height: limit,
+        };
     }
 }
