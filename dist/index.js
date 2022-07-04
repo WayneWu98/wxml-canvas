@@ -2,6 +2,7 @@ import { queryWXML, normalizeWxmls, parse2els, draw } from './utils/index';
 const initialOptions = {
     instanceContext: wx,
     selectors: [],
+    interval: 0
 };
 var EventType;
 (function (EventType) {

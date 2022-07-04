@@ -4,6 +4,7 @@ interface IOptions {
   canvas: string;
   selectors: string[];
   instanceContext?: InstanceContext;
+  interval: number
 }
 
 type InitialOptions = Required<{
@@ -13,6 +14,7 @@ type InitialOptions = Required<{
 const initialOptions: InitialOptions = {
   instanceContext: wx,
   selectors: [],
+  interval: 0
 };
 
 enum EventType {

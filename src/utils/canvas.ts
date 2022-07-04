@@ -1,8 +1,6 @@
 import WXMLCanvas from 'src';
 import ImgMetrics from './img-metrics';
 
-const isIOS = wx.getSystemInfoSync().system.toLowerCase().indexOf('iOS') > -1;
-
 function createRectPath(
   ctx: WechatMiniprogram.CanvasContext,
   metrics: Metrics,
@@ -415,46 +413,7 @@ const drawShadow = function (
   return Promise.resolve();
 };
 
-const drawInAndroid = (
-  els: IElement[],
-  ctx: WechatMiniprogram.CanvasContext,
-  canvas: WechatMiniprogram.Canvas,
-  instance: WXMLCanvas
-) => {
-  let p: Promise<any> = Promise.resolve();
-  els.forEach(el => {
-    p = p.then(() => {
-      if (instance.isAborted) {
-        instance.abortResolve();
-        throw new Error('Aborted');
-      }
-      if (el.metrics.width === 0 || el.metrics.height === 0) {
-        // 元素没有尺寸就没必要绘制了，可能会存在特殊情况
-        return Promise.resolve();
-      }
-      switch (el.type) {
-        case ELEMENT_TYPE.COLOR:
-          return drawColor(el as IColorElement, ctx);
-        case ELEMENT_TYPE.IMAGE:
-          return drawImage(el as IImageElement, ctx, canvas);
-        case ELEMENT_TYPE.BORDER:
-          return drawBorder(el as IBorderElement, ctx);
-        case ELEMENT_TYPE.SHADOW:
-          return drawShadow(el as IShadowElement, ctx, [
-            canvas.width,
-            canvas.height,
-          ]);
-        case ELEMENT_TYPE.TEXT:
-          return drawText(el as ITextElement, ctx);
-      }
-    });
-  });
-
-  return p;
-};
-
-// maybe the bottom is ugly code, but vx-mp official do is a GABAGE
-const drawInIOS = (
+export const draw = (
   els: IElement[],
   ctx: WechatMiniprogram.CanvasContext,
   canvas: WechatMiniprogram.Canvas,
@@ -492,23 +451,16 @@ const drawInIOS = (
           dummyPromise = drawText(el as ITextElement, ctx);
           break;
       }
-      return dummyPromise.then(() => {
-        return new Promise(r => setTimeout(() => r(), 100));
-      });
+      if (instance.options.interval > 0) {
+        return dummyPromise.then(() => {
+          return new Promise(r => setTimeout(() => r(), instance.options.interval));
+        });
+      }
+
+      return dummyPromise;
+      
     });
   });
 
   return p;
-};
-
-export const draw = (
-  els: IElement[],
-  ctx: WechatMiniprogram.CanvasContext,
-  canvas: WechatMiniprogram.Canvas,
-  instance: WXMLCanvas
-) => {
-  if (!isIOS) {
-    return drawInAndroid(els, ctx, canvas, instance);
-  }
-  return drawInIOS(els, ctx, canvas, instance);
 };

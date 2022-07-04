@@ -1,5 +1,4 @@
 import ImgMetrics from './img-metrics';
-const isIOS = wx.getSystemInfoSync().system.toLowerCase().indexOf('iOS') > -1;
 function createRectPath(ctx, metrics, radius = 0) {
     const { left, top, right, bottom, width, height } = metrics;
     if (radius) {
@@ -273,37 +272,7 @@ const drawShadow = function (el, ctx, containerSize) {
     ctx.restore();
     return Promise.resolve();
 };
-const drawInAndroid = (els, ctx, canvas, instance) => {
-    let p = Promise.resolve();
-    els.forEach(el => {
-        p = p.then(() => {
-            if (instance.isAborted) {
-                instance.abortResolve();
-                throw new Error('Aborted');
-            }
-            if (el.metrics.width === 0 || el.metrics.height === 0) {
-                return Promise.resolve();
-            }
-            switch (el.type) {
-                case "color":
-                    return drawColor(el, ctx);
-                case "image":
-                    return drawImage(el, ctx, canvas);
-                case "border":
-                    return drawBorder(el, ctx);
-                case "shadow":
-                    return drawShadow(el, ctx, [
-                        canvas.width,
-                        canvas.height,
-                    ]);
-                case "text":
-                    return drawText(el, ctx);
-            }
-        });
-    });
-    return p;
-};
-const drawInIOS = (els, ctx, canvas, instance) => {
+export const draw = (els, ctx, canvas, instance) => {
     let p = Promise.resolve();
     els.forEach(el => {
         p = p.then(() => {
@@ -335,16 +304,13 @@ const drawInIOS = (els, ctx, canvas, instance) => {
                     dummyPromise = drawText(el, ctx);
                     break;
             }
-            return dummyPromise.then(() => {
-                return new Promise(r => setTimeout(() => r(), 100));
-            });
+            if (instance.options.interval > 0) {
+                return dummyPromise.then(() => {
+                    return new Promise(r => setTimeout(() => r(), instance.options.interval));
+                });
+            }
+            return dummyPromise;
         });
     });
     return p;
-};
-export const draw = (els, ctx, canvas, instance) => {
-    if (!isIOS) {
-        return drawInAndroid(els, ctx, canvas, instance);
-    }
-    return drawInIOS(els, ctx, canvas, instance);
 };
