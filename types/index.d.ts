@@ -36,10 +36,7 @@ export default class WXMLCanvas {
     on(eventType: EventType, callback: () => void): void;
     off(eventType: EventType, callback: () => void): void;
     private emit;
-    static getFittedSize({ width, height }: {
-        width: number;
-        height: number;
-    }, limit?: number): {
+    static getFittedSizeFromCanvas({ width, height }: WechatMiniprogram.Canvas, limit?: number): {
         width: number;
         height: number;
     };

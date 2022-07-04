@@ -50,7 +50,7 @@ export default class WXMLCanvas {
         return this._ctx;
     }
     getFittedSize(limit = 1334) {
-        return WXMLCanvas.getFittedSize({ width: this.canvas.width, height: this.canvas.height }, limit);
+        return WXMLCanvas.getFittedSizeFromCanvas(this.canvas, limit);
     }
     _init() {
         return new Promise((resolve, reject) => {
@@ -120,7 +120,7 @@ export default class WXMLCanvas {
     emit(eventType) {
         this.listeners[eventType].forEach(callback => callback());
     }
-    static getFittedSize({ width, height }, limit = 1334) {
+    static getFittedSizeFromCanvas({ width, height }, limit = 1334) {
         if (Math.max(width, height) <= limit) {
             return { width, height };
         }
