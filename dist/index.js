@@ -1,9 +1,9 @@
-import { queryWXML, normalizeWxmls, parse2els, draw } from './utils/index';
+import { queryWXML, normalizeWxmls, parse2els, draw, getCanvasFittedScale, } from './utils/index';
 const initialOptions = {
     instanceContext: wx,
     selectors: [],
     interval: 0,
-    scale: wx.getSystemInfoSync().pixelRatio,
+    autoScale: true,
 };
 var EventType;
 (function (EventType) {
@@ -70,9 +70,12 @@ export default class WXMLCanvas {
             .then(() => queryWXML(this.options.selectors, this.options.instanceContext))
             .then(normalizeWxmls)
             .then(res => {
-            const scale = this.options.scale;
-            this._canvas.width = res[0].metrics.width * scale;
-            this._canvas.height = res[0].metrics.height * scale;
+            const { width, height } = res[0].metrics;
+            const scale = this.options.autoScale
+                ? getCanvasFittedScale(Math.max(width, height))
+                : 1;
+            this._canvas.width = Math.floor(width * scale);
+            this._canvas.height = Math.floor(height * scale);
             this._ctx.scale(scale, scale);
             this._els = parse2els(res, this.ctx, this.canvas);
         });
