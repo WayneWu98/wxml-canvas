@@ -4,7 +4,8 @@ interface IOptions {
     canvas: string;
     selectors: string[];
     instanceContext?: InstanceContext;
-    interval: number;
+    interval?: number;
+    scale?: number;
 }
 declare enum EventType {
     DRAWING = "drawing",

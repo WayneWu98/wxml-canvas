@@ -4,7 +4,8 @@ interface IOptions {
   canvas: string;
   selectors: string[];
   instanceContext?: InstanceContext;
-  interval: number;
+  interval?: number;
+  scale?: number;
 }
 
 type InitialOptions = Required<{
@@ -15,6 +16,7 @@ const initialOptions: InitialOptions = {
   instanceContext: wx,
   selectors: [],
   interval: 0,
+  scale: wx.getSystemInfoSync().pixelRatio,
 };
 
 enum EventType {
@@ -101,10 +103,10 @@ export default class WXMLCanvas {
       )
       .then(normalizeWxmls)
       .then(res => {
-        const dpr = wx.getSystemInfoSync().pixelRatio;
-        this._canvas!.width = res[0].metrics.width * dpr;
-        this._canvas!.height = res[0].metrics.height * dpr;
-        this._ctx!.scale(dpr, dpr);
+        const scale = this.options.scale;
+        this._canvas!.width = res[0].metrics.width * scale;
+        this._canvas!.height = res[0].metrics.height * scale;
+        this._ctx!.scale(scale, scale);
         this._els = parse2els(res, this.ctx, this.canvas);
       });
   }
