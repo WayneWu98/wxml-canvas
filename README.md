@@ -64,7 +64,6 @@ Options:
 2. selectors: string[] - 需要查询的 WXML 选择器，例如 `['.billboard', '.name']`，选择器支持类型请参考微信官方文档，注意数组前面的选择器对应的 WXML 节点会被先画到 canvas 上，所以第一个节点决定了 canvas 的尺寸；
 3. instanceContext: object - 实例上下文，默认为`wx`，如果是在 component 里调用，请传递该参数（传递组件的`this`）；
 4. interval: number - 绘制每个元素的时间间隔（目前小程序的 Canvas Context2D 还不是十分稳定，频繁的绘制操作可能会导致绘制不全，可以通过设置这个参数来控制绘制时间间隔，毫秒数，默认为 0）。
-5. authScale: boolean - 是否自动缩放画布大小至小于 4096，缩放起始值默认取设备像素比。
 
 ### WXMLCanvas.canvas: Canvas
 

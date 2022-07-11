@@ -5,7 +5,6 @@ interface IOptions {
     selectors: string[];
     instanceContext?: InstanceContext;
     interval?: number;
-    autoScale?: boolean;
 }
 declare enum EventType {
     DRAWING = "drawing",

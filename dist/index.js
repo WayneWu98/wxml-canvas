@@ -3,7 +3,6 @@ const initialOptions = {
     instanceContext: wx,
     selectors: [],
     interval: 0,
-    autoScale: true,
 };
 var EventType;
 (function (EventType) {
@@ -71,9 +70,7 @@ export default class WXMLCanvas {
             .then(normalizeWxmls)
             .then(res => {
             const { width, height } = res[0].metrics;
-            const scale = this.options.autoScale
-                ? getCanvasFittedScale(Math.max(width, height))
-                : 1;
+            const scale = getCanvasFittedScale(Math.max(width, height));
             this._canvas.width = Math.floor(width * scale);
             this._canvas.height = Math.floor(height * scale);
             this._ctx.scale(scale, scale);
