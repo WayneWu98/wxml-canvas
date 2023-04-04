@@ -1,7 +1,7 @@
 /// <reference types="miniprogram-api-typings" />
 /// <reference types="./src/typings" />
 interface IOptions {
-    canvas: string;
+    canvas: string | WechatMiniprogram.Canvas;
     selectors: string[];
     instanceContext?: InstanceContext;
     interval?: number;
