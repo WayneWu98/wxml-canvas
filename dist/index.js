@@ -54,17 +54,23 @@ export default class WXMLCanvas {
     }
     _init() {
         return new Promise((resolve, reject) => {
-            wx.createSelectorQuery()
-                .select(this.options.canvas)
-                .fields({ node: true, size: true })
-                .exec(res => {
-                if (!(res === null || res === void 0 ? void 0 : res[0])) {
-                    return reject(new Error('Canvas is not found.'));
-                }
-                this._canvas = res === null || res === void 0 ? void 0 : res[0].node;
-                this._ctx = this._canvas.getContext('2d');
-                resolve();
-            });
+            if (typeof this.options.canvas === 'string') {
+                wx.createSelectorQuery()
+                    .select(this.options.canvas)
+                    .fields({ node: true, size: true })
+                    .exec(res => {
+                    if (!(res === null || res === void 0 ? void 0 : res[0])) {
+                        return reject(new Error('Canvas is not found.'));
+                    }
+                    this._canvas = res === null || res === void 0 ? void 0 : res[0].node;
+                    this._ctx = this._canvas.getContext('2d');
+                    resolve();
+                });
+                return;
+            }
+            this._canvas = this.options.canvas;
+            this._ctx = this._canvas.getContext('2d');
+            resolve();
         })
             .then(() => queryWXML(this.options.selectors, this.options.instanceContext))
             .then(normalizeWxmls)

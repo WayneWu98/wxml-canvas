@@ -7,7 +7,7 @@ import {
 } from './utils/index';
 
 interface IOptions {
-  canvas: string;
+  canvas: string | WechatMiniprogram.Canvas;
   selectors: string[];
   instanceContext?: InstanceContext;
   interval?: number;
@@ -90,17 +90,23 @@ export default class WXMLCanvas {
 
   private _init() {
     return new Promise<void>((resolve, reject) => {
-      wx.createSelectorQuery()
-        .select(this.options.canvas)
-        .fields({ node: true, size: true })
-        .exec(res => {
-          if (!res?.[0]) {
-            return reject(new Error('Canvas is not found.'));
-          }
-          this._canvas = res?.[0].node as WechatMiniprogram.Canvas;
-          this._ctx = this._canvas.getContext('2d');
-          resolve();
-        });
+      if (typeof this.options.canvas === 'string') {
+        wx.createSelectorQuery()
+          .select(this.options.canvas)
+          .fields({ node: true, size: true })
+          .exec(res => {
+            if (!res?.[0]) {
+              return reject(new Error('Canvas is not found.'));
+            }
+            this._canvas = res?.[0].node as WechatMiniprogram.Canvas;
+            this._ctx = this._canvas.getContext('2d');
+            resolve();
+          });
+          return;
+      }
+      this._canvas = this.options.canvas;
+      this._ctx = this._canvas.getContext('2d');
+      resolve();
     })
       .then(() =>
         queryWXML(this.options.selectors, this.options.instanceContext)
